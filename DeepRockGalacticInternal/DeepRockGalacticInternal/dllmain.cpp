@@ -18,6 +18,7 @@ tShoot Shoot = nullptr; // Modulebase + 1514AA0
 
 uintptr_t moduleBase = (uintptr_t)GetModuleHandle(NULL);
 
+D3D12Hook MyHook;
 
 DWORD WINAPI HackThread(HMODULE hModule) {
 
@@ -30,12 +31,19 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 
 	Player.Start();*/
 
-	d3d12InitHook();
+	MyHook.d3d12InitHook();
 
-	while (!GetAsyncKeyState(VK_END) & 1) {
-		/*		
+	while (1) {
+		/*
 		Player.UpdateValues();*/
+		if (GetAsyncKeyState(VK_DELETE) & 1)
+		{
+		}
 
+		if (GetAsyncKeyState(VK_END) & 1)
+		{
+			break;
+		}
 		Sleep(5);
 	}
 
@@ -46,8 +54,8 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 
 	//FreeConsole();
 
-	DisableAll();
 
+	MyHook.DisableAll();
 	FreeLibraryAndExitThread(hModule, 0);
 	return 0;
 }

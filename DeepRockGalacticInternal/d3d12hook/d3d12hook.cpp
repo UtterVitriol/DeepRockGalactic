@@ -4,8 +4,10 @@
 
 #include "d3d12hook.h"
 
+extern D3D12Hook MyHook;
+
 // WORD WINAPI MainThread(LPVOID lpParameter) 
-void d3d12InitHook()
+void D3D12Hook::d3d12InitHook()
 {
 	bool WindowFocus = false;
 
@@ -17,37 +19,37 @@ void d3d12InitHook()
 
 		if (GetCurrentProcessId() == ForegroundWindowProcessID) {
 
-			Process.ID = GetCurrentProcessId();
-			Process.Handle = GetCurrentProcess();
-			Process.Hwnd = GetForegroundWindow();
+			MyHook.process.ID = GetCurrentProcessId();
+			MyHook.process.Handle = GetCurrentProcess();
+			MyHook.process.Hwnd = GetForegroundWindow();
 
 			RECT TempRect;
-			GetWindowRect(Process.Hwnd, &TempRect);
-			Process.WindowWidth = TempRect.right - TempRect.left;
-			Process.WindowHeight = TempRect.bottom - TempRect.top;
+			GetWindowRect(MyHook.process.Hwnd, &TempRect);
+			MyHook.process.WindowWidth = TempRect.right - TempRect.left;
+			MyHook.process.WindowHeight = TempRect.bottom - TempRect.top;
 
 			char TempTitle[MAX_PATH];
-			GetWindowTextA(Process.Hwnd, TempTitle, sizeof(TempTitle));
-			Process.Title = TempTitle;
+			GetWindowTextA(MyHook.process.Hwnd, TempTitle, sizeof(TempTitle));
+			MyHook.process.Title = TempTitle;
 
 			char TempClassName[MAX_PATH];
-			GetClassNameA(Process.Hwnd, TempClassName, sizeof(TempClassName));
-			Process.ClassName = TempClassName;
+			GetClassNameA(MyHook.process.Hwnd, TempClassName, sizeof(TempClassName));
+			MyHook.process.ClassName = TempClassName;
 
 			char TempPath[MAX_PATH];
-			GetModuleFileNameExA(Process.Handle, NULL, TempPath, sizeof(TempPath));
-			Process.Path = TempPath;
+			GetModuleFileNameExA(MyHook.process.Handle, NULL, TempPath, sizeof(TempPath));
+			MyHook.process.Path = TempPath;
 
 			WindowFocus = true;
 		}
 	}
 	bool InitHook = false;
 	while (InitHook == false) {
-		if (DirectX12::Init() == true) {
-			CreateHook(54, (void**)&oExecuteCommandLists, hkExecuteCommandLists);
-			CreateHook(140, (void**)&oPresent, hkPresent);
-			CreateHook(84, (void**)&oDrawInstanced, hkDrawInstanced);
-			CreateHook(85, (void**)&oDrawIndexedInstanced, hkDrawIndexedInstanced);
+		if (D3D12Hook::Init() == true) {
+			CreateHook(54, (void**)&MyHook.oExecuteCommandLists, hkExecuteCommandLists);
+			CreateHook(140, (void**)&MyHook.oPresent, hkPresent);
+			CreateHook(84, (void**)&MyHook.oDrawInstanced, hkDrawInstanced);
+			CreateHook(85, (void**)&MyHook.oDrawIndexedInstanced, hkDrawIndexedInstanced);
 			InitHook = true;
 		}
 	}
@@ -57,8 +59,8 @@ void d3d12InitHook()
 
 
 
-bool CreateHook(uint16_t Index, void** Original, void* Function) {
-	assert(_index >= 0 && _original != NULL && _function != NULL);
+bool D3D12Hook::CreateHook(uint16_t Index, void** Original, void* Function) {
+	//assert(_index >= 0 && _original != NULL && _function != NULL);
 	void* target = (void*)MethodsTable[Index];
 	if (MH_CreateHook(target, Function, Original) != MH_OK || MH_EnableHook(target) != MH_OK) {
 		return false;
@@ -67,156 +69,153 @@ bool CreateHook(uint16_t Index, void** Original, void* Function) {
 }
 
 LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	if (ShowMenu) {
+	if (MyHook.ShowMenu) {
 		ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam);
 		return true;
 	}
-	return CallWindowProc(Process.WndProc, hwnd, uMsg, wParam, lParam);
+	return CallWindowProc(MyHook.process.WndProc, hwnd, uMsg, wParam, lParam);
 }
 
 
-namespace DirectX12
+bool D3D12Hook::Init()
 {
-	bool Init()
+
+	if (InitWindow() == false)
 	{
-
-		if (InitWindow() == false)
-		{
-			return false;
-		}
-
-		HMODULE D3D12Module = GetModuleHandle(L"d3d12.dll");
-		HMODULE DXGIModule = GetModuleHandle(L"dxgi.dll");
-		if (D3D12Module == NULL || DXGIModule == NULL)
-		{
-			DeleteWindow();
-			return false;
-		}
-
-		void* CreateDXGIFactory = GetProcAddress(DXGIModule, "CreateDXGIFactory");
-		if (CreateDXGIFactory == NULL)
-		{
-			DeleteWindow();
-			return false;
-		}
-
-		IDXGIFactory* Factory = NULL;
-		if (((long(__stdcall*)(const IID&, void**))(CreateDXGIFactory))(__uuidof(IDXGIFactory), (void**)&Factory) < 0) 
-		{
-			DeleteWindow();
-			return false;
-		}
-
-		IDXGIAdapter* Adapter = NULL;
-		if (Factory->EnumAdapters(0, &Adapter) == DXGI_ERROR_NOT_FOUND)
-		{
-			DeleteWindow();
-			return false;
-		}
-
-		void* D3D12CreateDevice = GetProcAddress(D3D12Module, "D3D12CreateDevice");
-		if (D3D12CreateDevice == NULL) 
-		{
-			DeleteWindow();
-			return false;
-		}
-
-		ID3D12Device* Device = NULL;
-		if (((long(__stdcall*)(IUnknown*, D3D_FEATURE_LEVEL, const IID&, void**))(D3D12CreateDevice))(Adapter, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), (void**)&Device) < 0) 
-		{
-			DeleteWindow();
-			return false;
-		}
-
-		D3D12_COMMAND_QUEUE_DESC QueueDesc = { };
-		QueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		QueueDesc.Priority = 0;
-		QueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		QueueDesc.NodeMask = 0;
-
-		ID3D12CommandQueue* CommandQueue = NULL;
-		if (Device->CreateCommandQueue(&QueueDesc, __uuidof(ID3D12CommandQueue), (void**)&CommandQueue) < 0) 
-		{
-			DeleteWindow();
-			return false;
-		}
-
-		ID3D12CommandAllocator* CommandAllocator = NULL;
-		if (Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator), (void**)&CommandAllocator) < 0) 
-		{
-			DeleteWindow();
-			return false;
-		}
-
-		ID3D12GraphicsCommandList* CommandList = NULL;
-		if (Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, CommandAllocator, NULL, __uuidof(ID3D12GraphicsCommandList), (void**)&CommandList) < 0) 
-		{
-			DeleteWindow();
-			return false;
-		}
-
-		DXGI_RATIONAL RefreshRate = {};
-		RefreshRate.Numerator = 60;
-		RefreshRate.Denominator = 1;
-
-		DXGI_MODE_DESC BufferDesc = {};
-		BufferDesc.Width = 100;
-		BufferDesc.Height = 100;
-		BufferDesc.RefreshRate = RefreshRate;
-		BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-		BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-		DXGI_SAMPLE_DESC SampleDesc = {};
-		SampleDesc.Count = 1;
-		SampleDesc.Quality = 0;
-
-		DXGI_SWAP_CHAIN_DESC SwapChainDesc = {};
-		SwapChainDesc.BufferDesc = BufferDesc;
-		SwapChainDesc.SampleDesc = SampleDesc;
-		SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		SwapChainDesc.BufferCount = 2;
-		SwapChainDesc.OutputWindow = WindowHwnd;
-		SwapChainDesc.Windowed = 1;
-		SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		SwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-		IDXGISwapChain* SwapChain = NULL;
-		if (Factory->CreateSwapChain(CommandQueue, &SwapChainDesc, &SwapChain) < 0) 
-		{
-			DeleteWindow();
-			return false;
-		}
-
-
-		MethodsTable = NULL;
-		MethodsTable = (uintx_t*)::calloc(150, sizeof(uintx_t));
-		if (NULL != MethodsTable) {
-			memcpy(MethodsTable, *(uintx_t**)Device, 44 * sizeof(uintx_t));
-			memcpy(MethodsTable + 44, *(uintx_t**)CommandQueue, 19 * sizeof(uintx_t));
-			memcpy(MethodsTable + 44 + 19, *(uintx_t**)CommandAllocator, 9 * sizeof(uintx_t));
-			memcpy(MethodsTable + 44 + 19 + 9, *(uintx_t**)CommandList, 60 * sizeof(uintx_t));
-			memcpy(MethodsTable + 44 + 19 + 9 + 60, *(uintx_t**)SwapChain, 18 * sizeof(uintx_t));
-		}
-
-		MH_Initialize();
-		Device->Release();
-		Device = NULL;
-		CommandQueue->Release();
-		CommandQueue = NULL;
-		CommandAllocator->Release();
-		CommandAllocator = NULL;
-		CommandList->Release();
-		CommandList = NULL;
-		SwapChain->Release();
-		SwapChain = NULL;
-		DeleteWindow();
-		return true;
+		return false;
 	}
+
+	HMODULE D3D12Module = GetModuleHandle(L"d3d12.dll");
+	HMODULE DXGIModule = GetModuleHandle(L"dxgi.dll");
+	if (D3D12Module == NULL || DXGIModule == NULL)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+	void* CreateDXGIFactory = GetProcAddress(DXGIModule, "CreateDXGIFactory");
+	if (CreateDXGIFactory == NULL)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+	IDXGIFactory* Factory = NULL;
+	if (((long(__stdcall*)(const IID&, void**))(CreateDXGIFactory))(__uuidof(IDXGIFactory), (void**)&Factory) < 0)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+	IDXGIAdapter* Adapter = NULL;
+	if (Factory->EnumAdapters(0, &Adapter) == DXGI_ERROR_NOT_FOUND)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+	void* D3D12CreateDevice = GetProcAddress(D3D12Module, "D3D12CreateDevice");
+	if (D3D12CreateDevice == NULL)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+	ID3D12Device* Device = NULL;
+	if (((long(__stdcall*)(IUnknown*, D3D_FEATURE_LEVEL, const IID&, void**))(D3D12CreateDevice))(Adapter, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), (void**)&Device) < 0)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+	D3D12_COMMAND_QUEUE_DESC QueueDesc = { };
+	QueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	QueueDesc.Priority = 0;
+	QueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	QueueDesc.NodeMask = 0;
+
+	ID3D12CommandQueue* CommandQueue = NULL;
+	if (Device->CreateCommandQueue(&QueueDesc, __uuidof(ID3D12CommandQueue), (void**)&CommandQueue) < 0)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+	ID3D12CommandAllocator* CommandAllocator = NULL;
+	if (Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator), (void**)&CommandAllocator) < 0)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+	ID3D12GraphicsCommandList* CommandList = NULL;
+	if (Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, CommandAllocator, NULL, __uuidof(ID3D12GraphicsCommandList), (void**)&CommandList) < 0)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+	DXGI_RATIONAL RefreshRate = {};
+	RefreshRate.Numerator = 60;
+	RefreshRate.Denominator = 1;
+
+	DXGI_MODE_DESC BufferDesc = {};
+	BufferDesc.Width = 100;
+	BufferDesc.Height = 100;
+	BufferDesc.RefreshRate = RefreshRate;
+	BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+	DXGI_SAMPLE_DESC SampleDesc = {};
+	SampleDesc.Count = 1;
+	SampleDesc.Quality = 0;
+
+	DXGI_SWAP_CHAIN_DESC SwapChainDesc = {};
+	SwapChainDesc.BufferDesc = BufferDesc;
+	SwapChainDesc.SampleDesc = SampleDesc;
+	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	SwapChainDesc.BufferCount = 2;
+	SwapChainDesc.OutputWindow = WindowHwnd;
+	SwapChainDesc.Windowed = 1;
+	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	SwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	IDXGISwapChain* SwapChain = NULL;
+	if (Factory->CreateSwapChain(CommandQueue, &SwapChainDesc, &SwapChain) < 0)
+	{
+		DeleteWindow();
+		return false;
+	}
+
+
+	MyHook.MethodsTable = NULL;
+	MyHook.MethodsTable = (uintx_t*)::calloc(150, sizeof(uintx_t));
+	if (NULL != MyHook.MethodsTable) {
+		memcpy(MyHook.MethodsTable, *(uintx_t**)Device, 44 * sizeof(uintx_t));
+		memcpy(MyHook.MethodsTable + 44, *(uintx_t**)CommandQueue, 19 * sizeof(uintx_t));
+		memcpy(MyHook.MethodsTable + 44 + 19, *(uintx_t**)CommandAllocator, 9 * sizeof(uintx_t));
+		memcpy(MyHook.MethodsTable + 44 + 19 + 9, *(uintx_t**)CommandList, 60 * sizeof(uintx_t));
+		memcpy(MyHook.MethodsTable + 44 + 19 + 9 + 60, *(uintx_t**)SwapChain, 18 * sizeof(uintx_t));
+	}
+
+	MH_Initialize();
+	Device->Release();
+	Device = NULL;
+	CommandQueue->Release();
+	CommandQueue = NULL;
+	CommandAllocator->Release();
+	CommandAllocator = NULL;
+	CommandList->Release();
+	CommandList = NULL;
+	SwapChain->Release();
+	SwapChain = NULL;
+	DeleteWindow();
+	return true;
 }
 
 
-bool InitWindow() {
+bool D3D12Hook::InitWindow() {
 
 	WindowClass.cbSize = sizeof(WNDCLASSEX);
 	WindowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -238,7 +237,7 @@ bool InitWindow() {
 	return true;
 }
 
-bool DeleteWindow() {
+bool D3D12Hook::DeleteWindow() {
 	DestroyWindow(WindowHwnd);
 	UnregisterClass(WindowClass.lpszClassName, WindowClass.hInstance);
 	if (WindowHwnd != NULL) {
@@ -248,12 +247,12 @@ bool DeleteWindow() {
 }
 
 
-void DisableHook(uint16_t Index) {
+void D3D12Hook::DisableHook(uint16_t Index) {
 	assert(Index >= 0);
 	MH_DisableHook((void*)MethodsTable[Index]);
 }
 
-void DisableAll() {
+void D3D12Hook::DisableAll() {
 	MH_DisableHook(MH_ALL_HOOKS);
 	free(MethodsTable);
 	MethodsTable = NULL;
@@ -264,17 +263,17 @@ void DisableAll() {
 // Start My hooks
 //
 void hkExecuteCommandLists(ID3D12CommandQueue* queue, UINT NumCommandLists, ID3D12CommandList* ppCommandLists) {
-	if (!DirectX12Interface.CommandQueue)
-		DirectX12Interface.CommandQueue = queue;
+	if (!MyHook.directX12Interface.CommandQueue)
+		MyHook.directX12Interface.CommandQueue = queue;
 
-	oExecuteCommandLists(queue, NumCommandLists, ppCommandLists);
+	MyHook.oExecuteCommandLists(queue, NumCommandLists, ppCommandLists);
 }
 
 //=========================================================================================================================//
 
 HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT Flags) {
-	if (!ImGui_Initialised) {
-		if (SUCCEEDED(pSwapChain->GetDevice(__uuidof(ID3D12Device), (void**)&DirectX12Interface.Device))) {
+	if (!MyHook.ImGui_Initialised) {
+		if (SUCCEEDED(pSwapChain->GetDevice(__uuidof(ID3D12Device), (void**)&MyHook.directX12Interface.Device))) {
 			ImGui::CreateContext();
 
 			ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -284,77 +283,79 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 			DXGI_SWAP_CHAIN_DESC Desc;
 			pSwapChain->GetDesc(&Desc);
 			Desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-			Desc.OutputWindow = Process.Hwnd;
-			Desc.Windowed = ((GetWindowLongPtr(Process.Hwnd, GWL_STYLE) & WS_POPUP) != 0) ? false : true;
+			Desc.OutputWindow = MyHook.process.Hwnd;
+			Desc.Windowed = ((GetWindowLongPtr(MyHook.process.Hwnd, GWL_STYLE) & WS_POPUP) != 0) ? false : true;
 
-			DirectX12Interface.BuffersCounts = Desc.BufferCount;
-			DirectX12Interface.FrameContext = new _FrameContext[DirectX12Interface.BuffersCounts];
+			MyHook.directX12Interface.BuffersCounts = Desc.BufferCount;
+			MyHook.directX12Interface.FrameContext = new _FrameContext[MyHook.directX12Interface.BuffersCounts];
 
 			D3D12_DESCRIPTOR_HEAP_DESC DescriptorImGuiRender = {};
 			DescriptorImGuiRender.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			DescriptorImGuiRender.NumDescriptors = DirectX12Interface.BuffersCounts;
+			DescriptorImGuiRender.NumDescriptors = MyHook.directX12Interface.BuffersCounts;
 			DescriptorImGuiRender.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
-			if (DirectX12Interface.Device->CreateDescriptorHeap(&DescriptorImGuiRender, IID_PPV_ARGS(&DirectX12Interface.DescriptorHeapImGuiRender)) != S_OK)
-				return oPresent(pSwapChain, SyncInterval, Flags);
+			if (MyHook.directX12Interface.Device->CreateDescriptorHeap(&DescriptorImGuiRender, IID_PPV_ARGS(&MyHook.directX12Interface.DescriptorHeapImGuiRender)) != S_OK)
+				return MyHook.oPresent(pSwapChain, SyncInterval, Flags);
 
 			ID3D12CommandAllocator* Allocator;
-			if (DirectX12Interface.Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&Allocator)) != S_OK)
-				return oPresent(pSwapChain, SyncInterval, Flags);
+			if (MyHook.directX12Interface.Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&Allocator)) != S_OK)
+				return MyHook.oPresent(pSwapChain, SyncInterval, Flags);
 
-			for (size_t i = 0; i < DirectX12Interface.BuffersCounts; i++) {
-				DirectX12Interface.FrameContext[i].CommandAllocator = Allocator;
+			for (size_t i = 0; i < MyHook.directX12Interface.BuffersCounts; i++) {
+				MyHook.directX12Interface.FrameContext[i].CommandAllocator = Allocator;
 			}
 
-			if (DirectX12Interface.Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, Allocator, NULL, IID_PPV_ARGS(&DirectX12Interface.CommandList)) != S_OK ||
-				DirectX12Interface.CommandList->Close() != S_OK)
-				return oPresent(pSwapChain, SyncInterval, Flags);
+			if (MyHook.directX12Interface.Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, Allocator, NULL, IID_PPV_ARGS(&MyHook.directX12Interface.CommandList)) != S_OK ||
+				MyHook.directX12Interface.CommandList->Close() != S_OK)
+				return MyHook.oPresent(pSwapChain, SyncInterval, Flags);
 
 			D3D12_DESCRIPTOR_HEAP_DESC DescriptorBackBuffers = {};
 			DescriptorBackBuffers.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-			DescriptorBackBuffers.NumDescriptors = DirectX12Interface.BuffersCounts;
+			DescriptorBackBuffers.NumDescriptors = MyHook.directX12Interface.BuffersCounts;
 			DescriptorBackBuffers.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 			DescriptorBackBuffers.NodeMask = 1;
 
-			if (DirectX12Interface.Device->CreateDescriptorHeap(&DescriptorBackBuffers, IID_PPV_ARGS(&DirectX12Interface.DescriptorHeapBackBuffers)) != S_OK)
-				return oPresent(pSwapChain, SyncInterval, Flags);
+			if (MyHook.directX12Interface.Device->CreateDescriptorHeap(&DescriptorBackBuffers, IID_PPV_ARGS(&MyHook.directX12Interface.DescriptorHeapBackBuffers)) != S_OK)
+				return MyHook.oPresent(pSwapChain, SyncInterval, Flags);
 
-			const auto RTVDescriptorSize = DirectX12Interface.Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-			D3D12_CPU_DESCRIPTOR_HANDLE RTVHandle = DirectX12Interface.DescriptorHeapBackBuffers->GetCPUDescriptorHandleForHeapStart();
+			const auto RTVDescriptorSize = MyHook.directX12Interface.Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+			D3D12_CPU_DESCRIPTOR_HANDLE RTVHandle = MyHook.directX12Interface.DescriptorHeapBackBuffers->GetCPUDescriptorHandleForHeapStart();
 
-			for (size_t i = 0; i < DirectX12Interface.BuffersCounts; i++) {
+			for (size_t i = 0; i < MyHook.directX12Interface.BuffersCounts; i++) {
 				ID3D12Resource* pBackBuffer = nullptr;
-				DirectX12Interface.FrameContext[i].DescriptorHandle = RTVHandle;
+				MyHook.directX12Interface.FrameContext[i].DescriptorHandle = RTVHandle;
 				pSwapChain->GetBuffer(i, IID_PPV_ARGS(&pBackBuffer));
-				DirectX12Interface.Device->CreateRenderTargetView(pBackBuffer, nullptr, RTVHandle);
-				DirectX12Interface.FrameContext[i].Resource = pBackBuffer;
+				MyHook.directX12Interface.Device->CreateRenderTargetView(pBackBuffer, nullptr, RTVHandle);
+				MyHook.directX12Interface.FrameContext[i].Resource = pBackBuffer;
 				RTVHandle.ptr += RTVDescriptorSize;
 			}
 
-			ImGui_ImplWin32_Init(Process.Hwnd);
-			ImGui_ImplDX12_Init(DirectX12Interface.Device, DirectX12Interface.BuffersCounts, DXGI_FORMAT_R8G8B8A8_UNORM, DirectX12Interface.DescriptorHeapImGuiRender, DirectX12Interface.DescriptorHeapImGuiRender->GetCPUDescriptorHandleForHeapStart(), DirectX12Interface.DescriptorHeapImGuiRender->GetGPUDescriptorHandleForHeapStart());
+			ImGui_ImplWin32_Init(MyHook.process.Hwnd);
+			ImGui_ImplDX12_Init(MyHook.directX12Interface.Device, MyHook.directX12Interface.BuffersCounts, DXGI_FORMAT_R8G8B8A8_UNORM, MyHook.directX12Interface.DescriptorHeapImGuiRender, MyHook.directX12Interface.DescriptorHeapImGuiRender->GetCPUDescriptorHandleForHeapStart(), MyHook.directX12Interface.DescriptorHeapImGuiRender->GetGPUDescriptorHandleForHeapStart());
 			ImGui_ImplDX12_CreateDeviceObjects();
-			ImGui::GetIO().ImeWindowHandle = Process.Hwnd;
-			Process.WndProc = (WNDPROC)SetWindowLongPtr(Process.Hwnd, GWLP_WNDPROC, (__int3264)(LONG_PTR)WndProc);
+			ImGui::GetIO().ImeWindowHandle = MyHook.process.Hwnd;
+			MyHook.process.WndProc = (WNDPROC)SetWindowLongPtr(MyHook.process.Hwnd, GWLP_WNDPROC, (__int3264)(LONG_PTR)WndProc);
 		}
-		ImGui_Initialised = true;
+		MyHook.ImGui_Initialised = true;
 	}
 
-	if (DirectX12Interface.CommandQueue == nullptr)
-		return oPresent(pSwapChain, SyncInterval, Flags);
+	if (MyHook.directX12Interface.CommandQueue == nullptr)
+	{
+		return MyHook.oPresent(pSwapChain, SyncInterval, Flags);
+	}
 
 
-	if (GetAsyncKeyState(VK_INSERT) & 1) ShowMenu = !ShowMenu;
+	if (GetAsyncKeyState(VK_INSERT) & 1) MyHook.ShowMenu = !MyHook.ShowMenu;
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-	ImGui::GetIO().MouseDrawCursor = ShowMenu;
-	if (ShowMenu == true) {
+	ImGui::GetIO().MouseDrawCursor = MyHook.ShowMenu;
+	if (MyHook.ShowMenu == true) {
 		ImGui::ShowDemoWindow();
 	}
 	ImGui::EndFrame();
 
-	_FrameContext& CurrentFrameContext = DirectX12Interface.FrameContext[pSwapChain->GetCurrentBackBufferIndex()];
+	_FrameContext& CurrentFrameContext = MyHook.directX12Interface.FrameContext[pSwapChain->GetCurrentBackBufferIndex()];
 	CurrentFrameContext.CommandAllocator->Reset();
 
 	D3D12_RESOURCE_BARRIER Barrier = {};
@@ -365,26 +366,26 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 	Barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	Barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-	DirectX12Interface.CommandList->Reset(CurrentFrameContext.CommandAllocator, nullptr);
-	DirectX12Interface.CommandList->ResourceBarrier(1, &Barrier);
-	DirectX12Interface.CommandList->OMSetRenderTargets(1, &CurrentFrameContext.DescriptorHandle, FALSE, nullptr);
-	DirectX12Interface.CommandList->SetDescriptorHeaps(1, &DirectX12Interface.DescriptorHeapImGuiRender);
+	MyHook.directX12Interface.CommandList->Reset(CurrentFrameContext.CommandAllocator, nullptr);
+	MyHook.directX12Interface.CommandList->ResourceBarrier(1, &Barrier);
+	MyHook.directX12Interface.CommandList->OMSetRenderTargets(1, &CurrentFrameContext.DescriptorHandle, FALSE, nullptr);
+	MyHook.directX12Interface.CommandList->SetDescriptorHeaps(1, &MyHook.directX12Interface.DescriptorHeapImGuiRender);
 
 	ImGui::Render();
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), DirectX12Interface.CommandList);
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), MyHook.directX12Interface.CommandList);
 	Barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	Barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	DirectX12Interface.CommandList->ResourceBarrier(1, &Barrier);
-	DirectX12Interface.CommandList->Close();
-	DirectX12Interface.CommandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList* const*>(&DirectX12Interface.CommandList));
-	return oPresent(pSwapChain, SyncInterval, Flags);
+	MyHook.directX12Interface.CommandList->ResourceBarrier(1, &Barrier);
+	MyHook.directX12Interface.CommandList->Close();
+	MyHook.directX12Interface.CommandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList* const*>(&MyHook.directX12Interface.CommandList));
+	return MyHook.oPresent(pSwapChain, SyncInterval, Flags);
 }
 
 //=========================================================================================================================//
 
 void APIENTRY hkDrawInstanced(ID3D12GraphicsCommandList* dCommandList, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation) {
 
-	return oDrawInstanced(dCommandList, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+	return MyHook.oDrawInstanced(dCommandList, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
 }
 
 //=========================================================================================================================//
@@ -419,7 +420,7 @@ void APIENTRY hkDrawIndexedInstanced(ID3D12GraphicsCommandList* dCommandList, UI
 		return;
 	*/
 
-	return oDrawIndexedInstanced(dCommandList, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+	return MyHook.oDrawIndexedInstanced(dCommandList, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
 }
 //
 // End My Hooks

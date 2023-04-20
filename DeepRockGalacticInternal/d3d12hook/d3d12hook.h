@@ -19,21 +19,6 @@ typedef uint64_t uintx_t;
 typedef uint32_t uintx_t;
 #endif
 
-
-//
-// Begin: Globals
-//
-int countnum = -1;
-bool nopants_enabled = true;
-
-bool ShowMenu = false;
-bool ImGui_Initialised = false;
-
-WNDCLASSEX WindowClass;
-HWND WindowHwnd;
-
-static uintx_t* MethodsTable = NULL;
-
 struct _FrameContext {
 	ID3D12CommandAllocator* CommandAllocator;
 	ID3D12Resource* Resource;
@@ -47,10 +32,10 @@ public:
 	ID3D12DescriptorHeap* DescriptorHeapImGuiRender;
 	ID3D12GraphicsCommandList* CommandList;
 	ID3D12CommandQueue* CommandQueue;
-	
+
 	uintx_t BuffersCounts = -1;
 	_FrameContext* FrameContext;
-}DirectX12Interface;
+};
 
 class Process {
 public:
@@ -64,47 +49,16 @@ public:
 	LPCSTR Title;
 	LPCSTR ClassName;
 	LPCSTR Path;
-}Process;
-//
-// End: Globals
-//
-
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-namespace DirectX12
-{
-	bool Init();
-}
-
-//
-// Start: Call These
-//
-void d3d12InitHook();
-void DisableAll();
-// End: Call These
-
-bool InitWindow();
-bool DeleteWindow();
-
-bool CreateHook(uint16_t Index, void** Original, void* Function);
-void DisableHook(uint16_t Index);
+};
 
 
 //
 // Start: My Hooks
 //
 typedef HRESULT(APIENTRY* Present12) (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
-Present12 oPresent = NULL;
-
 typedef void(APIENTRY* ExecuteCommandLists)(ID3D12CommandQueue* queue, UINT NumCommandLists, ID3D12CommandList* ppCommandLists);
-ExecuteCommandLists oExecuteCommandLists = NULL;
-
-
 typedef void(APIENTRY* DrawInstanced)(ID3D12GraphicsCommandList* dCommandList, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation);
-DrawInstanced oDrawInstanced = NULL;
-
 typedef void(APIENTRY* DrawIndexedInstanced)(ID3D12GraphicsCommandList* dCommandList, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation);
-DrawIndexedInstanced oDrawIndexedInstanced = NULL;
 
 HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT Flags);
 void hkExecuteCommandLists(ID3D12CommandQueue* queue, UINT NumCommandLists, ID3D12CommandList* ppCommandLists);
@@ -113,6 +67,61 @@ void APIENTRY hkDrawIndexedInstanced(ID3D12GraphicsCommandList* dCommandList, UI
 //
 // End: My Hooks
 //
+
+
+
+
+class D3D12Hook
+{
+public:
+	//
+// Begin: Globals
+//
+	int countnum = -1;
+	bool nopants_enabled = true;
+
+	bool ShowMenu = false;
+	bool ImGui_Initialised = false;
+
+	WNDCLASSEX WindowClass;
+	HWND WindowHwnd;
+
+	uintx_t* MethodsTable;
+
+	DirectX12Interface directX12Interface;
+
+	Process process;
+
+	Present12 oPresent = NULL;
+	ExecuteCommandLists oExecuteCommandLists = NULL;
+	DrawInstanced oDrawInstanced = NULL;
+	DrawIndexedInstanced oDrawIndexedInstanced = NULL;
+
+	//
+	// End: Globals
+	//
+
+
+	bool Init();
+
+	//
+	// Start: Call These
+	//
+	void d3d12InitHook();
+	void DisableAll();
+	// End: Call These
+
+	bool InitWindow();
+	bool DeleteWindow();
+
+	bool CreateHook(uint16_t Index, void** Original, void* Function);
+	void DisableHook(uint16_t Index);
+
+};
+
+LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
 
