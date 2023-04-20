@@ -1,4 +1,3 @@
-// dllmain.cpp : Defines the entry point for the DLL application.
 #include <Windows.h>
 #include <iostream>
 #include <cstdio>
@@ -11,6 +10,7 @@
 #include "Player.h"
 #include "Hack.h"
 
+#include "d3d12hook.h"
 
 typedef void (*tShoot)(Weapon*);
 
@@ -21,29 +21,32 @@ uintptr_t moduleBase = (uintptr_t)GetModuleHandle(NULL);
 
 DWORD WINAPI HackThread(HMODULE hModule) {
 
-	AllocConsole();
+	/*AllocConsole();
 	FILE* fp = NULL;
 
 	freopen_s(&fp, "CONOUT$", "w", stdout);
 
-
 	MyPlayer Player;
 
-	Player.Start();
+	Player.Start();*/
+
+	d3d12InitHook();
 
 	while (!GetAsyncKeyState(VK_END) & 1) {
-				
-		Player.UpdateValues();
+		/*		
+		Player.UpdateValues();*/
 
 		Sleep(5);
 	}
 
-	if (fp)
+	/*if (fp)
 	{
 		fclose(fp);
-	}
+	}*/
 
-	FreeConsole();
+	//FreeConsole();
+
+	DisableAll();
 
 	FreeLibraryAndExitThread(hModule, 0);
 	return 0;
