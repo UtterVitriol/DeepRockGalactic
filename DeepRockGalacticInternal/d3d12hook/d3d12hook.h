@@ -39,16 +39,22 @@ public:
 
 class Process {
 public:
-	DWORD ID;
-	HANDLE Handle;
-	HWND Hwnd;
-	HMODULE Module;
-	WNDPROC WndProc;
-	int WindowWidth;
-	int WindowHeight;
-	LPCSTR Title;
-	LPCSTR ClassName;
-	LPCSTR Path;
+	DWORD ID;			// Process ID
+	HANDLE Handle;		// Process Handle
+	HWND Hwnd;			// Handle to foreground indow
+
+	//HMODULE Module;	// Not used 
+	
+	WNDPROC WndProc;	// Stores origional addres for window procedure
+
+	int WindowWidth;	// Width 
+	int WindowHeight;	// Height
+
+	LPCSTR Title;		// Foreground window title
+	LPCSTR ClassName;	// Foregroudn window parent class name
+	LPCSTR Path;		// Dll name
+	char tTitle[MAX_PATH];
+	char tClass[MAX_PATH];
 };
 
 
@@ -74,14 +80,10 @@ void APIENTRY hkDrawIndexedInstanced(ID3D12GraphicsCommandList* dCommandList, UI
 class D3D12Hook
 {
 public:
-	//
-// Begin: Globals
-//
-	int countnum = -1;
-	bool nopants_enabled = true;
-
+	
 	bool ShowMenu = false;
 	bool ImGui_Initialised = false;
+	bool bShutDown = false;
 
 	WNDCLASSEX WindowClass;
 	HWND WindowHwnd;
@@ -97,25 +99,23 @@ public:
 	DrawInstanced oDrawInstanced = NULL;
 	DrawIndexedInstanced oDrawIndexedInstanced = NULL;
 
-	//
-	// End: Globals
-	//
+	
 
-
-	bool Init();
-
-	//
-	// Start: Call These
-	//
+	// Main function
 	void d3d12InitHook();
-	void DisableAll();
-	// End: Call These
+	void d3d12UnHook();
+	
+	// Copy Virtual Funcitons into MethodsTable
+	bool GetVirtualFunctions();
+	bool CreateDummyWindow();
+	bool DeleteDummyWindow();
+	// End
 
-	bool InitWindow();
-	bool DeleteWindow();
-
+	// Hook Stuff
 	bool CreateHook(uint16_t Index, void** Original, void* Function);
 	void DisableHook(uint16_t Index);
+	void DisableAll();
+	// End
 
 };
 

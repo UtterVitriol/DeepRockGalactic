@@ -4,11 +4,18 @@
 
 #include "d3d12hook.h"
 
+#include <cstdio>
+#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#define DERR(s) printf("[-]: %s:%d:%s(): %s", __FILENAME__, __LINE__, __func__, s)
+#define DMSG(s) printf("[+]: %s:%d:%s(): %s", __FILENAME__, __LINE__, __func__, s)
+
 extern D3D12Hook MyHook;
 
 // WORD WINAPI MainThread(LPVOID lpParameter) 
 void D3D12Hook::d3d12InitHook()
 {
+
+	// Get process window infomation
 	bool WindowFocus = false;
 
 	while (WindowFocus == false) {
@@ -28,13 +35,9 @@ void D3D12Hook::d3d12InitHook()
 			MyHook.process.WindowWidth = TempRect.right - TempRect.left;
 			MyHook.process.WindowHeight = TempRect.bottom - TempRect.top;
 
-			char TempTitle[MAX_PATH];
-			GetWindowTextA(MyHook.process.Hwnd, TempTitle, sizeof(TempTitle));
-			MyHook.process.Title = TempTitle;
+			GetWindowTextA(MyHook.process.Hwnd, MyHook.process.tTitle, sizeof(MyHook.process.tTitle));
 
-			char TempClassName[MAX_PATH];
-			GetClassNameA(MyHook.process.Hwnd, TempClassName, sizeof(TempClassName));
-			MyHook.process.ClassName = TempClassName;
+			GetClassNameA(MyHook.process.Hwnd, MyHook.process.tClass, sizeof(MyHook.process.tClass));
 
 			char TempPath[MAX_PATH];
 			GetModuleFileNameExA(MyHook.process.Handle, NULL, TempPath, sizeof(TempPath));
@@ -43,23 +46,34 @@ void D3D12Hook::d3d12InitHook()
 			WindowFocus = true;
 		}
 	}
+
 	bool InitHook = false;
 	while (InitHook == false) {
-		if (D3D12Hook::Init() == true) {
+		if (GetVirtualFunctions() == true) {
 			CreateHook(54, (void**)&MyHook.oExecuteCommandLists, hkExecuteCommandLists);
 			CreateHook(140, (void**)&MyHook.oPresent, hkPresent);
-			CreateHook(84, (void**)&MyHook.oDrawInstanced, hkDrawInstanced);
-			CreateHook(85, (void**)&MyHook.oDrawIndexedInstanced, hkDrawIndexedInstanced);
+			/*CreateHook(84, (void**)&MyHook.oDrawInstanced, hkDrawInstanced);
+			CreateHook(85, (void**)&MyHook.oDrawIndexedInstanced, hkDrawIndexedInstanced);*/
 			InitHook = true;
 		}
 	}
 	//return 0;
 }
 
+void D3D12Hook::d3d12UnHook()
+{
+	// Reset window procedure
+	bShutDown = true;
+	DisableAll();
+	(WNDPROC)SetWindowLongPtr(MyHook.process.Hwnd, GWLP_WNDPROC, (__int3264)(LONG_PTR)MyHook.process.WndProc);
+	ImGui_ImplDX12_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+}
 
 
-
-bool D3D12Hook::CreateHook(uint16_t Index, void** Original, void* Function) {
+bool D3D12Hook::CreateHook(uint16_t Index, void** Original, void* Function)
+{
 	//assert(_index >= 0 && _original != NULL && _function != NULL);
 	void* target = (void*)MethodsTable[Index];
 	if (MH_CreateHook(target, Function, Original) != MH_OK || MH_EnableHook(target) != MH_OK) {
@@ -68,7 +82,8 @@ bool D3D12Hook::CreateHook(uint16_t Index, void** Original, void* Function) {
 	return true;
 }
 
-LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
 	if (MyHook.ShowMenu) {
 		ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam);
 		return true;
@@ -76,11 +91,21 @@ LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	return CallWindowProc(MyHook.process.WndProc, hwnd, uMsg, wParam, lParam);
 }
 
-
-bool D3D12Hook::Init()
+/// <summary>
+/// User to Get virtual functions for:
+///		ID3D12Device
+///		ID3D12CommandQueue
+///		ID3D12CommandAllocator
+///		ID3D12GraphicsCommandList
+///		IDXGISwapChain
+/// </summary>
+/// <returns>
+/// true if success
+/// false if failure
+/// </returns>
+bool D3D12Hook::GetVirtualFunctions()
 {
-
-	if (InitWindow() == false)
+	if (CreateDummyWindow() == false)
 	{
 		return false;
 	}
@@ -89,42 +114,42 @@ bool D3D12Hook::Init()
 	HMODULE DXGIModule = GetModuleHandle(L"dxgi.dll");
 	if (D3D12Module == NULL || DXGIModule == NULL)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
 	void* CreateDXGIFactory = GetProcAddress(DXGIModule, "CreateDXGIFactory");
 	if (CreateDXGIFactory == NULL)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
 	IDXGIFactory* Factory = NULL;
 	if (((long(__stdcall*)(const IID&, void**))(CreateDXGIFactory))(__uuidof(IDXGIFactory), (void**)&Factory) < 0)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
 	IDXGIAdapter* Adapter = NULL;
 	if (Factory->EnumAdapters(0, &Adapter) == DXGI_ERROR_NOT_FOUND)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
 	void* D3D12CreateDevice = GetProcAddress(D3D12Module, "D3D12CreateDevice");
 	if (D3D12CreateDevice == NULL)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
 	ID3D12Device* Device = NULL;
 	if (((long(__stdcall*)(IUnknown*, D3D_FEATURE_LEVEL, const IID&, void**))(D3D12CreateDevice))(Adapter, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), (void**)&Device) < 0)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
@@ -137,21 +162,21 @@ bool D3D12Hook::Init()
 	ID3D12CommandQueue* CommandQueue = NULL;
 	if (Device->CreateCommandQueue(&QueueDesc, __uuidof(ID3D12CommandQueue), (void**)&CommandQueue) < 0)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
 	ID3D12CommandAllocator* CommandAllocator = NULL;
 	if (Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator), (void**)&CommandAllocator) < 0)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
 	ID3D12GraphicsCommandList* CommandList = NULL;
 	if (Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, CommandAllocator, NULL, __uuidof(ID3D12GraphicsCommandList), (void**)&CommandList) < 0)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
@@ -184,7 +209,7 @@ bool D3D12Hook::Init()
 	IDXGISwapChain* SwapChain = NULL;
 	if (Factory->CreateSwapChain(CommandQueue, &SwapChainDesc, &SwapChain) < 0)
 	{
-		DeleteWindow();
+		DeleteDummyWindow();
 		return false;
 	}
 
@@ -210,13 +235,19 @@ bool D3D12Hook::Init()
 	CommandList = NULL;
 	SwapChain->Release();
 	SwapChain = NULL;
-	DeleteWindow();
+	DeleteDummyWindow();
 	return true;
 }
 
-
-bool D3D12Hook::InitWindow() {
-
+/// <summary>
+/// Creates Temporary Window used to get virtual table functions
+/// </summary>
+/// <returns>
+/// true if success
+/// false if failure
+/// </returns>
+bool D3D12Hook::CreateDummyWindow()
+{
 	WindowClass.cbSize = sizeof(WNDCLASSEX);
 	WindowClass.style = CS_HREDRAW | CS_VREDRAW;
 	WindowClass.lpfnWndProc = DefWindowProc;
@@ -237,7 +268,12 @@ bool D3D12Hook::InitWindow() {
 	return true;
 }
 
-bool D3D12Hook::DeleteWindow() {
+/// <summary>
+/// Deletes Temporary Window used to get virtual table functions
+/// </summary>
+/// <returns></returns>
+bool D3D12Hook::DeleteDummyWindow()
+{
 	DestroyWindow(WindowHwnd);
 	UnregisterClass(WindowClass.lpszClassName, WindowClass.hInstance);
 	if (WindowHwnd != NULL) {
@@ -246,40 +282,60 @@ bool D3D12Hook::DeleteWindow() {
 	return true;
 }
 
-
-void D3D12Hook::DisableHook(uint16_t Index) {
+/// <summary>
+/// Disables Specific hook
+/// </summary>
+/// <param name="Index"></param>
+void D3D12Hook::DisableHook(uint16_t Index)
+{
 	assert(Index >= 0);
 	MH_DisableHook((void*)MethodsTable[Index]);
 }
 
-void D3D12Hook::DisableAll() {
+/// <summary>
+/// Disables all hooks
+/// </summary>
+void D3D12Hook::DisableAll()
+{
 	MH_DisableHook(MH_ALL_HOOKS);
 	free(MethodsTable);
 	MethodsTable = NULL;
 }
 
 
-//
-// Start My hooks
-//
-void hkExecuteCommandLists(ID3D12CommandQueue* queue, UINT NumCommandLists, ID3D12CommandList* ppCommandLists) {
+/// <summary>
+///	Sets My Command queue to process command queue
+/// </summary>
+void hkExecuteCommandLists(ID3D12CommandQueue* queue, UINT NumCommandLists, ID3D12CommandList* ppCommandLists)
+{
 	if (!MyHook.directX12Interface.CommandQueue)
 		MyHook.directX12Interface.CommandQueue = queue;
 
 	MyHook.oExecuteCommandLists(queue, NumCommandLists, ppCommandLists);
 }
 
-//=========================================================================================================================//
-
-HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT Flags) {
+/// <summary>
+/// Main loop for imgui
+/// </summary>
+HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT Flags)
+{
 	if (!MyHook.ImGui_Initialised) {
 		if (SUCCEEDED(pSwapChain->GetDevice(__uuidof(ID3D12Device), (void**)&MyHook.directX12Interface.Device))) {
-			ImGui::CreateContext();
 
-			ImGuiIO& io = ImGui::GetIO(); (void)io;
+			ImGui::CreateContext();
+			ImGuiIO& io = ImGui::GetIO(); 
+
+			//// Lol what?????
+			//(void)io;
+
+			// This might not be required.
 			ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantTextInput || ImGui::GetIO().WantCaptureKeyboard;
+
+			//  Enable keyboard controls
 			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
+
+			// 
 			DXGI_SWAP_CHAIN_DESC Desc;
 			pSwapChain->GetDesc(&Desc);
 			Desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -334,6 +390,8 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 			ImGui_ImplDX12_Init(MyHook.directX12Interface.Device, MyHook.directX12Interface.BuffersCounts, DXGI_FORMAT_R8G8B8A8_UNORM, MyHook.directX12Interface.DescriptorHeapImGuiRender, MyHook.directX12Interface.DescriptorHeapImGuiRender->GetCPUDescriptorHandleForHeapStart(), MyHook.directX12Interface.DescriptorHeapImGuiRender->GetGPUDescriptorHandleForHeapStart());
 			ImGui_ImplDX12_CreateDeviceObjects();
 			ImGui::GetIO().ImeWindowHandle = MyHook.process.Hwnd;
+
+			// Must reset (Probably)
 			MyHook.process.WndProc = (WNDPROC)SetWindowLongPtr(MyHook.process.Hwnd, GWLP_WNDPROC, (__int3264)(LONG_PTR)WndProc);
 		}
 		MyHook.ImGui_Initialised = true;
@@ -344,52 +402,63 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 		return MyHook.oPresent(pSwapChain, SyncInterval, Flags);
 	}
 
+	if (!MyHook.bShutDown)
+	{
 
-	if (GetAsyncKeyState(VK_INSERT) & 1) MyHook.ShowMenu = !MyHook.ShowMenu;
-	ImGui_ImplDX12_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-	ImGui::GetIO().MouseDrawCursor = MyHook.ShowMenu;
-	if (MyHook.ShowMenu == true) {
-		ImGui::ShowDemoWindow();
+
+		if (GetAsyncKeyState(VK_INSERT) & 1) MyHook.ShowMenu = !MyHook.ShowMenu;
+		ImGui_ImplDX12_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+		ImGui::GetIO().MouseDrawCursor = MyHook.ShowMenu;
+		if (MyHook.ShowMenu == true) {
+			ImGui::ShowDemoWindow();
+		}
+		ImGui::EndFrame();
+
+		_FrameContext& CurrentFrameContext = MyHook.directX12Interface.FrameContext[pSwapChain->GetCurrentBackBufferIndex()];
+		CurrentFrameContext.CommandAllocator->Reset();
+
+		D3D12_RESOURCE_BARRIER Barrier = {};
+		Barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		Barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		Barrier.Transition.pResource = CurrentFrameContext.Resource;
+		Barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+		Barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+		Barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+		MyHook.directX12Interface.CommandList->Reset(CurrentFrameContext.CommandAllocator, nullptr);
+		MyHook.directX12Interface.CommandList->ResourceBarrier(1, &Barrier);
+		MyHook.directX12Interface.CommandList->OMSetRenderTargets(1, &CurrentFrameContext.DescriptorHandle, FALSE, nullptr);
+		MyHook.directX12Interface.CommandList->SetDescriptorHeaps(1, &MyHook.directX12Interface.DescriptorHeapImGuiRender);
+
+		ImGui::Render();
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), MyHook.directX12Interface.CommandList);
+		Barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		Barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+		MyHook.directX12Interface.CommandList->ResourceBarrier(1, &Barrier);
+		MyHook.directX12Interface.CommandList->Close();
+		MyHook.directX12Interface.CommandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList* const*>(&MyHook.directX12Interface.CommandList));
 	}
-	ImGui::EndFrame();
-
-	_FrameContext& CurrentFrameContext = MyHook.directX12Interface.FrameContext[pSwapChain->GetCurrentBackBufferIndex()];
-	CurrentFrameContext.CommandAllocator->Reset();
-
-	D3D12_RESOURCE_BARRIER Barrier = {};
-	Barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	Barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	Barrier.Transition.pResource = CurrentFrameContext.Resource;
-	Barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	Barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	Barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-	MyHook.directX12Interface.CommandList->Reset(CurrentFrameContext.CommandAllocator, nullptr);
-	MyHook.directX12Interface.CommandList->ResourceBarrier(1, &Barrier);
-	MyHook.directX12Interface.CommandList->OMSetRenderTargets(1, &CurrentFrameContext.DescriptorHandle, FALSE, nullptr);
-	MyHook.directX12Interface.CommandList->SetDescriptorHeaps(1, &MyHook.directX12Interface.DescriptorHeapImGuiRender);
-
-	ImGui::Render();
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), MyHook.directX12Interface.CommandList);
-	Barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	Barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	MyHook.directX12Interface.CommandList->ResourceBarrier(1, &Barrier);
-	MyHook.directX12Interface.CommandList->Close();
-	MyHook.directX12Interface.CommandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList* const*>(&MyHook.directX12Interface.CommandList));
 	return MyHook.oPresent(pSwapChain, SyncInterval, Flags);
 }
 
-//=========================================================================================================================//
 
+//
+// Start My Hooks
+//
+
+/// <summary>
+/// Doesn't fucking do anything
+/// </summary>
 void APIENTRY hkDrawInstanced(ID3D12GraphicsCommandList* dCommandList, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation) {
 
 	return MyHook.oDrawInstanced(dCommandList, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
 }
 
-//=========================================================================================================================//
-
+/// <summary>
+/// Also doesn't fucking do anything
+/// </summary>
 void APIENTRY hkDrawIndexedInstanced(ID3D12GraphicsCommandList* dCommandList, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation) {
 
 	/*
@@ -427,38 +496,6 @@ void APIENTRY hkDrawIndexedInstanced(ID3D12GraphicsCommandList* dCommandList, UI
 //
 
 
-//BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved) {
-//	switch (dwReason) {
-//	case DLL_PROCESS_ATTACH:
-//		DisableThreadLibraryCalls(hModule);
-//
-//		Process::Module = hModule;
-//
-//		GetModuleFileNameA(hModule, dlldir, 319);
-//
-//		for (size_t i = strlen(dlldir); i > 0; i--)
-//		{
-//			if (dlldir[i] == '\\') 
-//			{
-//				dlldir[i + 1] = 0; break; 
-//			} 
-//		}
-//
-//		CreateThread(0, 0, MainThread, 0, 0, 0);
-//		break;
-//	case DLL_PROCESS_DETACH:
-//		FreeLibraryAndExitThread(hModule, TRUE);
-//		DisableAll();
-//		break;
-//	case DLL_THREAD_ATTACH:
-//		break;
-//	case DLL_THREAD_DETACH:
-//		break;
-//	default:
-//		break;
-//	}
-//	return TRUE;
-//}
 
 //=========================================================================================================================//
 

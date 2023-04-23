@@ -52,6 +52,11 @@
     <ClInclude Include="Minhook\src\HDE\table64.h" />
     <ClInclude Include="Minhook\src\trampoline.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\minhook\minhook.vcxproj">
+      <Project>{3c64e3b4-0683-4a3f-899d-3f4e25786e3f}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
