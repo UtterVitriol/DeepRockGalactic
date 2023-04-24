@@ -20,39 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="d3d12hook.cpp" />
-    <ClCompile Include="imgui\imgui.cpp" />
-    <ClCompile Include="imgui\imgui_demo.cpp" />
-    <ClCompile Include="imgui\imgui_draw.cpp" />
-    <ClCompile Include="imgui\imgui_impl_dx12.cpp" />
-    <ClCompile Include="imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="imgui\imgui_tables.cpp" />
-    <ClCompile Include="imgui\imgui_widgets.cpp" />
-    <ClCompile Include="Minhook\src\buffer.c" />
-    <ClCompile Include="Minhook\src\HDE\hde32.c" />
-    <ClCompile Include="Minhook\src\HDE\hde64.c" />
-    <ClCompile Include="Minhook\src\hook.c" />
-    <ClCompile Include="Minhook\src\trampoline.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3d12hook.h" />
-    <ClInclude Include="imgui\imconfig.h" />
-    <ClInclude Include="imgui\imgui.h" />
-    <ClInclude Include="imgui\imgui_impl_dx12.h" />
-    <ClInclude Include="imgui\imgui_impl_win32.h" />
-    <ClInclude Include="imgui\imgui_internal.h" />
-    <ClInclude Include="imgui\imstb_rectpack.h" />
-    <ClInclude Include="imgui\imstb_textedit.h" />
-    <ClInclude Include="imgui\imstb_truetype.h" />
-    <ClInclude Include="Minhook\include\MinHook.h" />
-    <ClInclude Include="Minhook\src\buffer.h" />
-    <ClInclude Include="Minhook\src\HDE\hde32.h" />
-    <ClInclude Include="Minhook\src\HDE\hde64.h" />
-    <ClInclude Include="Minhook\src\HDE\pstdint.h" />
-    <ClInclude Include="Minhook\src\HDE\table32.h" />
-    <ClInclude Include="Minhook\src\HDE\table64.h" />
-    <ClInclude Include="Minhook\src\trampoline.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\imgui\imgui.vcxproj">
+      <Project>{2d77f8c5-274a-4639-a08f-b8690f0aac7c}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\minhook\minhook.vcxproj">
       <Project>{3c64e3b4-0683-4a3f-899d-3f4e25786e3f}</Project>
     </ProjectReference>
@@ -115,6 +90,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,6 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,6 +121,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -158,7 +136,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook\Minhook;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>

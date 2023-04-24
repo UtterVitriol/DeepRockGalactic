@@ -3,6 +3,7 @@
 #include "GameData.h"
 #include "Hack.h"
 #include "Display.h"
+#include "Menus.h"
 
 #include <vector>
 
@@ -20,21 +21,23 @@ public:
 	void UpdateValues();
 
 	uintptr_t moduleBase = 0;
-	uint32_t firstOffset = 0x61E2200;
-	std::vector<unsigned int> offsets = { 0x0, 0x20, 0x0 };
 
+	uint32_t firstOffset_Resources = 0x061E9F80;
+	std::vector<unsigned int> offsets_Resources = { 0x8, 0x5F8, 0x0 };
+
+	uint32_t firstOffset_GameData = 0x61E2200;
+	std::vector<unsigned int> offsets_GameData = { 0x0, 0x20, 0x0 };
+
+	Player* pPlayer = NULL;
 	GameData* pGameData = NULL;
 
 	GameData* pLast = NULL;
 	std::vector<unsigned int> validateOffsets = { 0x0 };
 
-private:
 	void GoodWeapons();
 	void GodWeapons();
 	void RapidFire();
-
 	void Steroids();
-
 	void Teleport();
 
 	TrainerDisplay Display;
@@ -59,6 +62,8 @@ private:
 	uintptr_t ShieldDamageOffset = 0x1231E55;
 
 	uintptr_t HookHealthOffset = 0x141A562;
+
+	bool bIsOnMission = false;
 
 	bool bSave = true;
 	bool bHasSaved = false;

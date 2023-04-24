@@ -15,45 +15,52 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Display.h">
+    <ClInclude Include="imstb_truetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Hack.h">
+    <ClInclude Include="imstb_rectpack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
+    <ClInclude Include="imstb_textedit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GameData.h">
+    <ClInclude Include="imgui_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Menus.h">
+    <ClInclude Include="imgui_impl_win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_dx12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
+    <ClCompile Include="imgui_widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Hack.cpp">
+    <ClCompile Include="imgui_tables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
+    <ClCompile Include="imgui_impl_win32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Menus.cpp">
+    <ClCompile Include="imgui_impl_dx12.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <NASM Include="HealthHook.asm">
+    <ClCompile Include="imgui_draw.cpp">
       <Filter>Source Files</Filter>
-    </NASM>
-    <NASM Include="MineralHook.asm">
+    </ClCompile>
+    <ClCompile Include="imgui_demo.cpp">
       <Filter>Source Files</Filter>
-    </NASM>
-    <NASM Include="ObjectiveHook.asm">
+    </ClCompile>
+    <ClCompile Include="imgui.cpp">
       <Filter>Source Files</Filter>
-    </NASM>
+    </ClCompile>
   </ItemGroup>
 </Project>

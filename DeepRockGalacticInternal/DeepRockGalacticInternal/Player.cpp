@@ -22,7 +22,10 @@ void MyPlayer::Start()
 	ShootCharged = (tShootCharged)(moduleBase + 0x01647ea0);
 	// 01647ea0
 
-	pGameData = (GameData*)Hack::FindDMAAddy(moduleBase + firstOffset, { 0x0, 0x20, 0x0 });
+	pPlayer = (Player*)Hack::FindDMAAddy(moduleBase + firstOffset_Resources, { 0x8, 0x5F8, 0x0 });
+
+	pGameData = (GameData*)Hack::FindDMAAddy(moduleBase + firstOffset_GameData, { 0x0, 0x20, 0x0 });
+
 	pLast = pGameData;
 }
 
@@ -30,30 +33,24 @@ void MyPlayer::Start()
 
 void MyPlayer::Validate()
 {
-	pGameData = (GameData*)Hack::FindDMAAddy(moduleBase + firstOffset, { 0x0, 0x20, 0x0 });
+	pGameData = (GameData*)Hack::FindDMAAddy(moduleBase + firstOffset_GameData, { 0x0, 0x20, 0x0 });
 
 	if (pGameData != pLast)
 	{
+		bIsOnMission = false;
 		pGameData = NULL;
 		this->Stop();
 			
-		Display.Print(&Display.sGameStatus, "PRES HOME WHEN NEXT MISSION LOADED");
 
-		while (!GetAsyncKeyState(VK_HOME) & 1)
+		while (!bIsOnMission)
 		{
-			if(GetAsyncKeyState(VK_END) & 1)
-			{
-				return;
-			}
-
 			Sleep(5);
 		}
 
 
-		pGameData = (GameData*)Hack::FindDMAAddy(moduleBase + firstOffset, { 0x0, 0x20, 0x0 });
+		pGameData = (GameData*)Hack::FindDMAAddy(moduleBase + firstOffset_GameData, { 0x0, 0x20, 0x0 });
 		pLast = pGameData;
 
-		Display.Print(&Display.sGameStatus, "ON MISSION");
 
 	}
 	return;
@@ -217,7 +214,7 @@ void MyPlayer::UpdateValues()
 		return;
 	}
 
-	SetBools();
+	//SetBools();
 
 	pWeaponData = pGameData->pWeaponData;
 	pWeapon = pWeaponData->pCurrentWeapon;

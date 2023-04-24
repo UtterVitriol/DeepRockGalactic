@@ -3,15 +3,16 @@
 #include <windows.h>
 #include <psapi.h>
 #include <cstdint>
+
+#include "MinHook.h"
+#include "imgui.h"
+#include "imgui_impl_dx12.h"
+#include "imgui_impl_win32.h"
 #include <dxgi1_4.h>
 #include <d3d12.h>
 #pragma comment(lib, "d3d12.lib")
 
-#include "Minhook\include\MinHook.h"
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_dx12.h"
-#include "imgui/imgui_impl_win32.h"
 
 #if defined _M_X64
 typedef uint64_t uintx_t;
@@ -85,6 +86,7 @@ public:
 	bool ImGui_Initialised = false;
 	bool bShutDown = false;
 
+
 	WNDCLASSEX WindowClass;
 	HWND WindowHwnd;
 
@@ -99,8 +101,8 @@ public:
 	DrawInstanced oDrawInstanced = NULL;
 	DrawIndexedInstanced oDrawIndexedInstanced = NULL;
 
+	void (*MyMenu)();
 	
-
 	// Main function
 	void d3d12InitHook();
 	void d3d12UnHook();

@@ -79,6 +79,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -96,6 +97,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -114,7 +116,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -132,7 +134,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -147,11 +149,13 @@
     <ClInclude Include="Display.h" />
     <ClInclude Include="GameData.h" />
     <ClInclude Include="Hack.h" />
+    <ClInclude Include="Menus.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Hack.cpp" />
+    <ClCompile Include="Menus.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -168,6 +172,12 @@
   <ItemGroup>
     <ProjectReference Include="..\d3d12hook\d3d12hook.vcxproj">
       <Project>{54be149d-988e-47e6-9410-01d87ee45906}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\imgui\imgui.vcxproj">
+      <Project>{2d77f8c5-274a-4639-a08f-b8690f0aac7c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\minhook\minhook.vcxproj">
+      <Project>{3c64e3b4-0683-4a3f-899d-3f4e25786e3f}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

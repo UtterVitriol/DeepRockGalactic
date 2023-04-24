@@ -5,6 +5,7 @@
 #include "Display.h"
 #include "Player.h"
 #include "Hack.h"
+#include "Menus.h"
 
 #include "d3d12hook.h"
 
@@ -15,6 +16,7 @@ tShoot Shoot = nullptr; // Modulebase + 1514AA0
 uintptr_t moduleBase = (uintptr_t)GetModuleHandle(NULL);
 
 D3D12Hook MyHook;
+MyPlayer g_player;
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 #define DERR(s) printf("[-]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
@@ -23,6 +25,9 @@ D3D12Hook MyHook;
 
 DWORD WINAPI HackThread(HMODULE hModule) {
 
+	g_player.Start();
+
+	MyHook.MyMenu = MyMenu;
 	MyHook.d3d12InitHook();
 
 	AllocConsole();
@@ -43,9 +48,7 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 		DMSG("YAY WINDOW");
 	}
 
-	/*MyPlayer Player;
-
-	Player.Start();*/
+	
 
 
 	DMSG(MyHook.process.tTitle);
@@ -54,11 +57,7 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 	DERR("Hello Fucker");
 
 	while (1) {
-		/*
-		Player.UpdateValues();*/
-		if (GetAsyncKeyState(VK_DELETE) & 1)
-		{
-		}
+		g_player.UpdateValues();
 
 		if (GetAsyncKeyState(VK_END) & 1)
 		{

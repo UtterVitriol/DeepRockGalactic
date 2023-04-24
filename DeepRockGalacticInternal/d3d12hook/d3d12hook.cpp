@@ -323,17 +323,13 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 		if (SUCCEEDED(pSwapChain->GetDevice(__uuidof(ID3D12Device), (void**)&MyHook.directX12Interface.Device))) {
 
 			ImGui::CreateContext();
-			ImGuiIO& io = ImGui::GetIO(); 
-
-			//// Lol what?????
-			//(void)io;
+			ImGuiIO& io = ImGui::GetIO(); (void)io;
 
 			// This might not be required.
 			ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantTextInput || ImGui::GetIO().WantCaptureKeyboard;
 
 			//  Enable keyboard controls
 			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
 
 			// 
 			DXGI_SWAP_CHAIN_DESC Desc;
@@ -406,15 +402,25 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 	{
 
 
-		if (GetAsyncKeyState(VK_INSERT) & 1) MyHook.ShowMenu = !MyHook.ShowMenu;
+		if (GetAsyncKeyState(VK_INSERT) & 1)
+		{
+			MyHook.ShowMenu = !MyHook.ShowMenu;
+		}
+
+
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
+
 		ImGui::GetIO().MouseDrawCursor = MyHook.ShowMenu;
+
 		if (MyHook.ShowMenu == true) {
-			ImGui::ShowDemoWindow();
+			//ImGui::ShowDemoWindow();
+			MyHook.MyMenu();
 		}
 		ImGui::EndFrame();
+
+		ImGui::Render();
 
 		_FrameContext& CurrentFrameContext = MyHook.directX12Interface.FrameContext[pSwapChain->GetCurrentBackBufferIndex()];
 		CurrentFrameContext.CommandAllocator->Reset();
@@ -432,7 +438,6 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 		MyHook.directX12Interface.CommandList->OMSetRenderTargets(1, &CurrentFrameContext.DescriptorHandle, FALSE, nullptr);
 		MyHook.directX12Interface.CommandList->SetDescriptorHeaps(1, &MyHook.directX12Interface.DescriptorHeapImGuiRender);
 
-		ImGui::Render();
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), MyHook.directX12Interface.CommandList);
 		Barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 		Barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;

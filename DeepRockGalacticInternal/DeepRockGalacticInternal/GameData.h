@@ -238,3 +238,67 @@ public:
 	char pad_01C0[8]; //0x01C0
 }; //Size: 0x01C8
 static_assert(sizeof(WeaponDamage) == 0x1C8);
+
+
+///////////////////////////////////////////////////////////
+
+// 
+// Created with ReClass.NET 1.2 by KN4CK3R
+
+class Player
+{
+public:
+	char pad_0000[792]; //0x0000
+	class Season* PtrSeason; //0x0318
+	char pad_0320[504]; //0x0320
+	int32_t Credits; //0x0518
+	char pad_051C[924]; //0x051C
+	class Resources* Resources; //0x08B8
+	char pad_08C0[3960]; //0x08C0
+}; //Size: 0x1838
+static_assert(sizeof(Player) == 0x1838);
+
+class Resources
+{
+public:
+	char pad_0000[16]; //0x0000
+	float Phazyonite; //0x0010
+	char pad_0014[24]; //0x0014
+	float StarchNut; //0x002C
+	char pad_0030[24]; //0x0030
+	float BarleyBulb; //0x0048
+	char pad_004C[24]; //0x004C
+	float YeastCone; //0x0064
+	char pad_0068[24]; //0x0068
+	float Bismor; //0x0080
+	char pad_0084[24]; //0x0084
+	float Jadiz; //0x009C
+	char pad_00A0[24]; //0x00A0
+	float EnorPearl; //0x00B8
+	char pad_00BC[24]; //0x00BC
+	float Umanite; //0x00D4
+	char pad_00D8[24]; //0x00D8
+	float MaltStar; //0x00F0
+	char pad_00F4[24]; //0x00F4
+	float Croppa; //0x010C
+	char pad_0110[24]; //0x0110
+	float Magnite; //0x0128
+	char pad_012C[24]; //0x012C
+	float SomeResource1; //0x0144
+	char pad_0148[24]; //0x0148
+	float SomeResource2; //0x0160
+	char pad_0164[24]; //0x0164
+	float SomeResource3; //0x017C
+	char pad_0180[8]; //0x0180
+}; //Size: 0x0188
+static_assert(sizeof(Resources) == 0x188);
+
+class Season
+{
+public:
+	char pad_0000[16]; //0x0000
+	int32_t XP; //0x0010
+	int32_t Scrip; //0x0014
+	char pad_0018[1136]; //0x0018
+}; //Size: 0x0488
+static_assert(sizeof(Season) == 0x488);
