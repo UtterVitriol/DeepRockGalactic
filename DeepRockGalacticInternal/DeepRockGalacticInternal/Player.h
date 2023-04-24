@@ -53,10 +53,14 @@ public:
 	tShoot Shoot = nullptr;
 
 	bool bHookMinerals = false;
+	bool bHookedMinerals = false;
 	uintptr_t HookMineralsOffset = 0x142B590;
+	void HookMinerals();
 
 	bool bHookObjective = false;
+	bool bHookedObjective = false;
 	uintptr_t HookObjectiveOffset = 0x145227B;
+	void HookObjective();
 		
 
 	uintptr_t ShieldDamageOffset = 0x1231E55;

@@ -35,6 +35,8 @@ void MyMenu()
 				ImGui::TableNextColumn(); ImGui::Checkbox("God Weapons", &g_player.bGodWeapons);
 				ImGui::TableNextColumn(); ImGui::Checkbox("Rapid Fire", &g_player.bRapidFire);
 				ImGui::TableNextColumn(); ImGui::Checkbox("Steroids", &g_player.bSteroids);
+				ImGui::TableNextColumn(); ImGui::Checkbox("Hook Minerals", &g_player.bHookMinerals);
+				ImGui::TableNextColumn(); ImGui::Checkbox("Hook Mineral Objective", &g_player.bHookObjective);
 				ImGui::EndTable();
 			}
 		}

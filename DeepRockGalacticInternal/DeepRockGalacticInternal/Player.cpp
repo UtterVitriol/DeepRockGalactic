@@ -221,6 +221,8 @@ void MyPlayer::UpdateValues()
 	pBody = pGameData->pPlayerData->pBody;
 
 	Steroids();
+	HookMinerals();
+	HookObjective();
 
 
 	if (bGoodWeapons)
@@ -244,6 +246,47 @@ void MyPlayer::UpdateValues()
 	{
 		Teleport();
 	}
+}
+
+void MyPlayer::HookMinerals()
+{
+	if (bHookMinerals)
+	{
+		if (bHookedMinerals)
+		{
+			return;
+		}
+
+		Hack::Detour((BYTE*)moduleBase + HookMineralsOffset, mineral_hook, 16);
+		bHookedMinerals = true;
+		
+	}
+	else {
+
+		//FSD-Win64-Shipping.exe+142B590 - F3 0F11 49 60    - movss [rcx55+60],xmm1
+		//FSD-Win64-Shipping.exe+142B595 - F3 0F11 4C 24 28 - movss[rsp + 28], xmm1
+		//FSD-Win64-Shipping.exe+142B59B - F3 0F11 41 68    - movss[rcx + 68], xmm0
+
+
+		Hack::Patch((BYTE*)(moduleBase + HookMineralsOffset), (BYTE*)"\xF3\x0F\x11\x49\x60\xF3\x0F\x11\x4C\x24\x28\xF3\x0F\x11\x41\x68", 16);
+		bHookedMinerals = false;
+	}
+}
+
+void MyPlayer::HookObjective()
+{
+	if (bHookObjective)
+		{
+			Display.Print(&Display.sObjectiveHook, "HOOKED");
+			Hack::Detour((BYTE*)moduleBase + HookObjectiveOffset, objective_hook, 16);
+			bHookedObjective = true;
+		}
+		else
+		{
+			Display.Print(&Display.sObjectiveHook, "NOT HOOKED");
+			Hack::Patch((BYTE*)(moduleBase + HookObjectiveOffset), (BYTE*)"\xF3\x0F\x5D\x91\x88\x01\x00\x00\xF3\x0F\x11\x91\x8C\x01\x00\x00", 16);
+			bHookedObjective = false;
+		}
 }
 
 void MyPlayer::GoodWeapons()
