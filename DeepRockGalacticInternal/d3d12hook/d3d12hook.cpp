@@ -3,22 +3,16 @@
 /////////////////////
 
 #include "d3d12hook.h"
-
-#include <cstdio>
-#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-#define DERR(s) printf("[-]: %s:%d:%s(): %s", __FILENAME__, __LINE__, __func__, s)
-#define DMSG(s) printf("[+]: %s:%d:%s(): %s", __FILENAME__, __LINE__, __func__, s)
+#include "kiero.h"
 
 extern D3D12Hook MyHook;
 
 // WORD WINAPI MainThread(LPVOID lpParameter) 
-void D3D12Hook::d3d12InitHook()
+bool D3D12Hook::d3d12InitHook()
 {
 
-	// Get process window infomation
-	bool WindowFocus = false;
-
-	while (WindowFocus == false) {
+	bool HasWindowHandle = false;
+	while (HasWindowHandle == false) {
 
 		DWORD ForegroundWindowProcessID;
 
@@ -43,28 +37,39 @@ void D3D12Hook::d3d12InitHook()
 			GetModuleFileNameExA(MyHook.process.Handle, NULL, TempPath, sizeof(TempPath));
 			MyHook.process.Path = TempPath;
 
-			WindowFocus = true;
+			HasWindowHandle = true;
 		}
 	}
 
-	bool InitHook = false;
-	while (InitHook == false) {
-		if (GetVirtualFunctions() == true) {
-			CreateHook(54, (void**)&MyHook.oExecuteCommandLists, hkExecuteCommandLists);
-			CreateHook(140, (void**)&MyHook.oPresent, hkPresent);
-			/*CreateHook(84, (void**)&MyHook.oDrawInstanced, hkDrawInstanced);
-			CreateHook(85, (void**)&MyHook.oDrawIndexedInstanced, hkDrawIndexedInstanced);*/
-			InitHook = true;
-		}
+	if (kiero::init(kiero::RenderType::D3D12) == kiero::Status::Success)
+	{
+		kiero::bind(54, (void**)&MyHook.oExecuteCommandLists, hkExecuteCommandLists);
+		kiero::bind(140, (void**)&MyHook.oPresent, hkPresent);
+		return true;
 	}
-	//return 0;
+	else
+	{
+		return false;
+	}
+	
 }
 
 void D3D12Hook::d3d12UnHook()
 {
+	if (!MyHook.ImGui_Initialised)
+	{
+		return;
+	}
 	// Reset window procedure
 	bShutDown = true;
-	DisableAll();
+
+	directX12Interface.Device->Release();
+	directX12Interface.DescriptorHeapBackBuffers->Release();
+	directX12Interface.DescriptorHeapImGuiRender->Release();
+	directX12Interface.CommandList->Release();
+	directX12Interface.CommandQueue->Release();
+	//DisableAll();
+	kiero::shutdown();
 	(WNDPROC)SetWindowLongPtr(MyHook.process.Hwnd, GWLP_WNDPROC, (__int3264)(LONG_PTR)MyHook.process.WndProc);
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -72,15 +77,7 @@ void D3D12Hook::d3d12UnHook()
 }
 
 
-bool D3D12Hook::CreateHook(uint16_t Index, void** Original, void* Function)
-{
-	//assert(_index >= 0 && _original != NULL && _function != NULL);
-	void* target = (void*)MethodsTable[Index];
-	if (MH_CreateHook(target, Function, Original) != MH_OK || MH_EnableHook(target) != MH_OK) {
-		return false;
-	}
-	return true;
-}
+
 
 LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -91,216 +88,6 @@ LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return CallWindowProc(MyHook.process.WndProc, hwnd, uMsg, wParam, lParam);
 }
 
-/// <summary>
-/// User to Get virtual functions for:
-///		ID3D12Device
-///		ID3D12CommandQueue
-///		ID3D12CommandAllocator
-///		ID3D12GraphicsCommandList
-///		IDXGISwapChain
-/// </summary>
-/// <returns>
-/// true if success
-/// false if failure
-/// </returns>
-bool D3D12Hook::GetVirtualFunctions()
-{
-	if (CreateDummyWindow() == false)
-	{
-		return false;
-	}
-
-	HMODULE D3D12Module = GetModuleHandle(L"d3d12.dll");
-	HMODULE DXGIModule = GetModuleHandle(L"dxgi.dll");
-	if (D3D12Module == NULL || DXGIModule == NULL)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-	void* CreateDXGIFactory = GetProcAddress(DXGIModule, "CreateDXGIFactory");
-	if (CreateDXGIFactory == NULL)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-	IDXGIFactory* Factory = NULL;
-	if (((long(__stdcall*)(const IID&, void**))(CreateDXGIFactory))(__uuidof(IDXGIFactory), (void**)&Factory) < 0)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-	IDXGIAdapter* Adapter = NULL;
-	if (Factory->EnumAdapters(0, &Adapter) == DXGI_ERROR_NOT_FOUND)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-	void* D3D12CreateDevice = GetProcAddress(D3D12Module, "D3D12CreateDevice");
-	if (D3D12CreateDevice == NULL)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-	ID3D12Device* Device = NULL;
-	if (((long(__stdcall*)(IUnknown*, D3D_FEATURE_LEVEL, const IID&, void**))(D3D12CreateDevice))(Adapter, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), (void**)&Device) < 0)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-	D3D12_COMMAND_QUEUE_DESC QueueDesc = { };
-	QueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	QueueDesc.Priority = 0;
-	QueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	QueueDesc.NodeMask = 0;
-
-	ID3D12CommandQueue* CommandQueue = NULL;
-	if (Device->CreateCommandQueue(&QueueDesc, __uuidof(ID3D12CommandQueue), (void**)&CommandQueue) < 0)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-	ID3D12CommandAllocator* CommandAllocator = NULL;
-	if (Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator), (void**)&CommandAllocator) < 0)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-	ID3D12GraphicsCommandList* CommandList = NULL;
-	if (Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, CommandAllocator, NULL, __uuidof(ID3D12GraphicsCommandList), (void**)&CommandList) < 0)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-	DXGI_RATIONAL RefreshRate = {};
-	RefreshRate.Numerator = 60;
-	RefreshRate.Denominator = 1;
-
-	DXGI_MODE_DESC BufferDesc = {};
-	BufferDesc.Width = 100;
-	BufferDesc.Height = 100;
-	BufferDesc.RefreshRate = RefreshRate;
-	BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-	DXGI_SAMPLE_DESC SampleDesc = {};
-	SampleDesc.Count = 1;
-	SampleDesc.Quality = 0;
-
-	DXGI_SWAP_CHAIN_DESC SwapChainDesc = {};
-	SwapChainDesc.BufferDesc = BufferDesc;
-	SwapChainDesc.SampleDesc = SampleDesc;
-	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	SwapChainDesc.BufferCount = 2;
-	SwapChainDesc.OutputWindow = WindowHwnd;
-	SwapChainDesc.Windowed = 1;
-	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	SwapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-	IDXGISwapChain* SwapChain = NULL;
-	if (Factory->CreateSwapChain(CommandQueue, &SwapChainDesc, &SwapChain) < 0)
-	{
-		DeleteDummyWindow();
-		return false;
-	}
-
-
-	MyHook.MethodsTable = NULL;
-	MyHook.MethodsTable = (uintx_t*)::calloc(150, sizeof(uintx_t));
-	if (NULL != MyHook.MethodsTable) {
-		memcpy(MyHook.MethodsTable, *(uintx_t**)Device, 44 * sizeof(uintx_t));
-		memcpy(MyHook.MethodsTable + 44, *(uintx_t**)CommandQueue, 19 * sizeof(uintx_t));
-		memcpy(MyHook.MethodsTable + 44 + 19, *(uintx_t**)CommandAllocator, 9 * sizeof(uintx_t));
-		memcpy(MyHook.MethodsTable + 44 + 19 + 9, *(uintx_t**)CommandList, 60 * sizeof(uintx_t));
-		memcpy(MyHook.MethodsTable + 44 + 19 + 9 + 60, *(uintx_t**)SwapChain, 18 * sizeof(uintx_t));
-	}
-
-	MH_Initialize();
-	Device->Release();
-	Device = NULL;
-	CommandQueue->Release();
-	CommandQueue = NULL;
-	CommandAllocator->Release();
-	CommandAllocator = NULL;
-	CommandList->Release();
-	CommandList = NULL;
-	SwapChain->Release();
-	SwapChain = NULL;
-	DeleteDummyWindow();
-	return true;
-}
-
-/// <summary>
-/// Creates Temporary Window used to get virtual table functions
-/// </summary>
-/// <returns>
-/// true if success
-/// false if failure
-/// </returns>
-bool D3D12Hook::CreateDummyWindow()
-{
-	WindowClass.cbSize = sizeof(WNDCLASSEX);
-	WindowClass.style = CS_HREDRAW | CS_VREDRAW;
-	WindowClass.lpfnWndProc = DefWindowProc;
-	WindowClass.cbClsExtra = 0;
-	WindowClass.cbWndExtra = 0;
-	WindowClass.hInstance = GetModuleHandle(NULL);
-	WindowClass.hIcon = NULL;
-	WindowClass.hCursor = NULL;
-	WindowClass.hbrBackground = NULL;
-	WindowClass.lpszMenuName = NULL;
-	WindowClass.lpszClassName = L"MJ";
-	WindowClass.hIconSm = NULL;
-	RegisterClassEx(&WindowClass);
-	WindowHwnd = CreateWindow(WindowClass.lpszClassName, L"DirectX Window", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, NULL, NULL, WindowClass.hInstance, NULL);
-	if (WindowHwnd == NULL) {
-		return false;
-	}
-	return true;
-}
-
-/// <summary>
-/// Deletes Temporary Window used to get virtual table functions
-/// </summary>
-/// <returns></returns>
-bool D3D12Hook::DeleteDummyWindow()
-{
-	DestroyWindow(WindowHwnd);
-	UnregisterClass(WindowClass.lpszClassName, WindowClass.hInstance);
-	if (WindowHwnd != NULL) {
-		return false;
-	}
-	return true;
-}
-
-/// <summary>
-/// Disables Specific hook
-/// </summary>
-/// <param name="Index"></param>
-void D3D12Hook::DisableHook(uint16_t Index)
-{
-	assert(Index >= 0);
-	MH_DisableHook((void*)MethodsTable[Index]);
-}
-
-/// <summary>
-/// Disables all hooks
-/// </summary>
-void D3D12Hook::DisableAll()
-{
-	MH_DisableHook(MH_ALL_HOOKS);
-	free(MethodsTable);
-	MethodsTable = NULL;
-}
 
 
 /// <summary>
@@ -324,7 +111,9 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 
 			ImGui::CreateContext();
 			ImGuiIO& io = ImGui::GetIO(); (void)io;
-
+			ImGui::StyleColorsDark();
+			io.Fonts->AddFontDefault();
+			io.FontGlobalScale = 1.5f;
 			// This might not be required.
 			ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantTextInput || ImGui::GetIO().WantCaptureKeyboard;
 

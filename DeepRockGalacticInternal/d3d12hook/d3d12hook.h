@@ -104,21 +104,8 @@ public:
 	void (*MyMenu)();
 	
 	// Main function
-	void d3d12InitHook();
+	bool d3d12InitHook();
 	void d3d12UnHook();
-	
-	// Copy Virtual Funcitons into MethodsTable
-	bool GetVirtualFunctions();
-	bool CreateDummyWindow();
-	bool DeleteDummyWindow();
-	// End
-
-	// Hook Stuff
-	bool CreateHook(uint16_t Index, void** Original, void* Function);
-	void DisableHook(uint16_t Index);
-	void DisableAll();
-	// End
-
 };
 
 LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

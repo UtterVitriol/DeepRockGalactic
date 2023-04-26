@@ -14,10 +14,11 @@ extern "C" void objective_hook();
 class MyPlayer
 {
 public:
+	struct AppLog log;
+
 	void Start();
 	void Validate();
 	void Stop();
-	void SetBools();
 	void UpdateValues();
 
 	uintptr_t moduleBase = 0;
@@ -32,7 +33,6 @@ public:
 	GameData* pGameData = NULL;
 
 	GameData* pLast = NULL;
-	std::vector<unsigned int> validateOffsets = { 0x0 };
 
 	void GoodWeapons();
 	void GodWeapons();

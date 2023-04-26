@@ -2,11 +2,8 @@
 
 void MyPlayer::Start()
 {
-	Display.SetWindow();
-	Display.Print();
-
 	moduleBase = (uintptr_t)GetModuleHandle(L"FSD-Win64-Shipping.exe");
-	
+
 	Shoot = (tShoot)(moduleBase + 0x1514AA0);
 
 	// 014c67f0
@@ -39,8 +36,8 @@ void MyPlayer::Validate()
 	{
 		bIsOnMission = false;
 		pGameData = NULL;
-		this->Stop();
-			
+		Stop();
+
 
 		while (!bIsOnMission)
 		{
@@ -67,141 +64,26 @@ void MyPlayer::Stop()
 	bRapidFire = false;
 	bTeleport = false;
 	bSteroids = false;
-	
+
 
 	pWeaponData = NULL;
 	pWeapon = NULL;
 	pBody = NULL;
 
-	Display.Print(&Display.sGoodWeapons, "OFF");
-	Display.Print(&Display.sGodWeapons, "OFF");
-	Display.Print(&Display.sRapidFire, "OFF");
-	Display.Print(&Display.sSteroids, "OFF");
-	Display.Print(&Display.sTeleport, "NOT SAVED");
 
-	if (bHookMinerals) {
+
+	if (bHookMinerals)
+	{
 		Hack::Patch((BYTE*)(moduleBase + HookMineralsOffset), (BYTE*)"\xF3\x0F\x11\x49\x60\xF3\x0F\x11\x4C\x24\x28\xF3\x0F\x11\x41\x68", 16);
 		bHookMinerals = false;
 	}
-	Display.Print(&Display.sMineralHook, "NOT HOOKED");
+	if (bHookedObjective)
+	{
+		Hack::Patch((BYTE*)(moduleBase + HookObjectiveOffset), (BYTE*)"\xF3\x0F\x5D\x91\x88\x01\x00\x00\xF3\x0F\x11\x91\x8C\x01\x00\x00", 16);
+		bHookObjective = false;
+	}
 }
 
-void MyPlayer::SetBools()
-{
-	if (!pGameData)
-	{
-		return;
-	}
-
-	if (GetAsyncKeyState(VK_NUMPAD1) & 1) {
-		bGoodWeapons = !bGoodWeapons;
-		if (bGoodWeapons)
-		{
-			Display.Print(&Display.sGoodWeapons, "ON");
-		}
-		else
-		{
-			Display.Print(&Display.sGoodWeapons, "OFF");
-
-		}
-	}
-
-	if (GetAsyncKeyState(VK_NUMPAD2) & 1) {
-		bGodWeapons = !bGodWeapons;
-		if (bGodWeapons)
-		{
-			Display.Print(&Display.sGodWeapons, "ON");
-		}
-		else
-		{
-			Display.Print(&Display.sGodWeapons, "OFF");
-
-		}
-	}
-
-	if (GetAsyncKeyState(VK_NUMPAD3) & 1) {
-		bRapidFire = !bRapidFire;
-		if (bRapidFire)
-		{
-			Display.Print(&Display.sRapidFire, "ON");
-		}
-		else
-		{
-			Display.Print(&Display.sRapidFire, "OFF");
-
-		}
-	}
-
-	if (GetAsyncKeyState(VK_NUMPAD4) & 1) {
-		bSteroids = !bSteroids;
-		if (bSteroids)
-		{
-			Display.Print(&Display.sSteroids, "ON");
-		}
-
-		else
-		{
-			Display.Print(&Display.sSteroids, "OFF");
-
-		}
-	}
-
-	if (GetAsyncKeyState(VK_NUMPAD5) & 1)
-	{
-		if (!bHookMinerals)
-		{
-
-			Display.Print(&Display. sMineralHook, "HOOKED");
-			Hack::Detour((BYTE*)moduleBase + HookMineralsOffset, mineral_hook, 16);
-			bHookMinerals = true;
-		}
-		else {
-
-			//FSD-Win64-Shipping.exe+142B590 - F3 0F11 49 60    - movss [rcx55+60],xmm1
-			//FSD-Win64-Shipping.exe+142B595 - F3 0F11 4C 24 28 - movss[rsp + 28], xmm1
-			//FSD-Win64-Shipping.exe+142B59B - F3 0F11 41 68    - movss[rcx + 68], xmm0
-			
-
-			Display.Print(&Display. sMineralHook, "NOT HOOKED");
-			Hack::Patch((BYTE*)(moduleBase + HookMineralsOffset), (BYTE*)"\xF3\x0F\x11\x49\x60\xF3\x0F\x11\x4C\x24\x28\xF3\x0F\x11\x41\x68", 16);
-			bHookMinerals = false;
-		}
-	}
-
-	if (GetAsyncKeyState(VK_NUMPAD6) & 1)
-	{
-		// FSD-Win64-Shipping.exe + 145227B - F3 0F 5D 91 88 01 00 00 - minss xmm2, [rcx + 00000188]
-		// FSD-Win64-Shipping.exe + 1452283 - F3 0F 11 91 8C 01 00 00 - movss[rcx + 0000018C], xmm2
-
-		if (!bHookObjective)
-		{
-			Display.Print(&Display.sObjectiveHook, "HOOKED");
-			Hack::Detour((BYTE*)moduleBase + HookObjectiveOffset, objective_hook, 16);
-
-
-			bHookObjective = true;
-		}
-		else
-		{
-			Display.Print(&Display.sObjectiveHook, "NOT HOOKED");
-			Hack::Patch((BYTE*)(moduleBase + HookObjectiveOffset), (BYTE*)"\xF3\x0F\x5D\x91\x88\x01\x00\x00\xF3\x0F\x11\x91\x8C\x01\x00\x00", 16);
-			bHookObjective = false;
-		}
-	}
-
-	if (GetAsyncKeyState(VK_NUMPAD7) & 1) {
-		bSave = true;
-		Teleport();
-		Display.Print(&Display.sTeleport, "SAVED");
-	}
-
-	if (GetAsyncKeyState(VK_NUMPAD8) & 1) {
-		bSave = false;
-		Teleport();
-
-	}
-
-}
 
 void MyPlayer::UpdateValues()
 {
@@ -214,7 +96,6 @@ void MyPlayer::UpdateValues()
 		return;
 	}
 
-	//SetBools();
 
 	pWeaponData = pGameData->pWeaponData;
 	pWeapon = pWeaponData->pCurrentWeapon;
@@ -226,7 +107,6 @@ void MyPlayer::UpdateValues()
 
 
 	if (bGoodWeapons)
-
 	{
 		GoodWeapons();
 	}
@@ -259,7 +139,7 @@ void MyPlayer::HookMinerals()
 
 		Hack::Detour((BYTE*)moduleBase + HookMineralsOffset, mineral_hook, 16);
 		bHookedMinerals = true;
-		
+
 	}
 	else {
 
@@ -276,17 +156,15 @@ void MyPlayer::HookMinerals()
 void MyPlayer::HookObjective()
 {
 	if (bHookObjective)
-		{
-			Display.Print(&Display.sObjectiveHook, "HOOKED");
-			Hack::Detour((BYTE*)moduleBase + HookObjectiveOffset, objective_hook, 16);
-			bHookedObjective = true;
-		}
-		else
-		{
-			Display.Print(&Display.sObjectiveHook, "NOT HOOKED");
-			Hack::Patch((BYTE*)(moduleBase + HookObjectiveOffset), (BYTE*)"\xF3\x0F\x5D\x91\x88\x01\x00\x00\xF3\x0F\x11\x91\x8C\x01\x00\x00", 16);
-			bHookedObjective = false;
-		}
+	{
+		Hack::Detour((BYTE*)moduleBase + HookObjectiveOffset, objective_hook, 16);
+		bHookedObjective = true;
+	}
+	else
+	{
+		Hack::Patch((BYTE*)(moduleBase + HookObjectiveOffset), (BYTE*)"\xF3\x0F\x5D\x91\x88\x01\x00\x00\xF3\x0F\x11\x91\x8C\x01\x00\x00", 16);
+		bHookedObjective = false;
+	}
 }
 
 void MyPlayer::GoodWeapons()
@@ -434,7 +312,7 @@ void MyPlayer::RapidFire()
 		case shotgun:
 			Shoot(pWeapon);
 			break;
-		
+
 		}
 	}
 }
@@ -460,7 +338,7 @@ void MyPlayer::Steroids()
 		pBody->jumpNumber = 100;
 		pBody->pMovement->jumpHeight = 1000;
 		pBody->pMovement->pRunSpeed->runSpeed = 1000;
-		
+
 		if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
 		{
 			pBody->pMovement->walkSpeed = 1000;

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <cstdio>
 
-#include "Display.h"
 #include "Player.h"
 #include "Hack.h"
 #include "Menus.h"
@@ -19,8 +18,8 @@ D3D12Hook MyHook;
 MyPlayer g_player;
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-#define DERR(s) printf("[-]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
-#define DMSG(s) printf("[+]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
+#define DERR(s) g_player.log.AddLog("[-]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
+#define DMSG(s) g_player.log.AddLog("[+]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
 
 
 DWORD WINAPI HackThread(HMODULE hModule) {
@@ -28,16 +27,17 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 	g_player.Start();
 
 	MyHook.MyMenu = MyMenu;
-	MyHook.d3d12InitHook();
-
-	AllocConsole();
-	SetConsoleTitleA("Fuck You");
-	FILE* fp = NULL;
-
-	freopen_s(&fp, "CONOUT$", "w", stdout);
 
 	HWND hWnd = NULL;
-	hWnd = FindWindow(L"Unreal Window", L"Deep Rock Galactic");
+	
+
+	if (!MyHook.d3d12InitHook())
+	{
+		goto END;
+	}
+	
+	// This can get deleted
+	hWnd = FindWindowW(L"Unreal Window", L"Deep Rock Galactic");
 
 	if (NULL == hWnd)   
 	{
@@ -48,8 +48,6 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 		DMSG("YAY WINDOW");
 	}
 
-	
-
 
 	DMSG(MyHook.process.tTitle);
 	DMSG(MyHook.process.tClass);
@@ -57,11 +55,9 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 	DERR("Hello Fucker");
 
 	while (1) {
-		g_player.UpdateValues();
 
 		if (GetAsyncKeyState(VK_END) & 1)
 		{
-			puts("Goodbye fucker");
 			break;
 		}
 		Sleep(5);
@@ -73,11 +69,7 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 	MyHook.d3d12UnHook();
 
 END:
-	if (fp)
-	{
-		fclose(fp);
-	}
-	FreeConsole();
+	
 
 	FreeLibraryAndExitThread(hModule, 0);
 }
