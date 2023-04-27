@@ -29,10 +29,16 @@ public:
 	uint32_t firstOffset_GameData = 0x61E2200;
 	std::vector<unsigned int> offsets_GameData = { 0x0, 0x20, 0x0 };
 
+	// resources 
 	Player* pPlayer = NULL;
-	GameData* pGameData = NULL;
 
+	GameData* pGameData = NULL;
 	GameData* pLast = NULL;
+
+	WeaponData* pWeaponData = NULL;
+	Weapon* pWeapon = NULL;
+	Body* pBody = NULL;
+
 
 	void GoodWeapons();
 	void GodWeapons();
@@ -42,9 +48,7 @@ public:
 
 	TrainerDisplay Display;
 
-	WeaponData* pWeaponData = NULL;
-	Weapon* pWeapon = NULL;
-	Body* pBody = NULL;
+
 
 	typedef void(*tShootCharged)(Weapon*, float);
 	tShootCharged ShootCharged = nullptr;

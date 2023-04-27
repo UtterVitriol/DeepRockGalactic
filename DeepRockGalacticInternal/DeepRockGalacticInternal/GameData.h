@@ -83,11 +83,19 @@ static_assert(sizeof(WeaponData) == 0x290);
 class Pickaxe
 {
 public:
-	char pad_0000[964]; //0x0000
+	char pad_0000[264]; //0x0000
+	float N00000DF8; //0x0108
+	char pad_010C[696]; //0x010C
 	float powerCooldown; //0x03C4
-	char pad_03C8[208]; //0x03C8
-}; //Size: 0x0498
-static_assert(sizeof(Pickaxe) == 0x498);
+	char pad_03C8[96]; //0x03C8
+	float N00000E5C; //0x0428
+	float N00002684; //0x042C
+	float N00000E5D; //0x0430
+	char pad_0434[112]; //0x0434
+	float N000026BD; //0x04A4
+	char pad_04A8[240]; //0x04A8
+}; //Size: 0x0598
+static_assert(sizeof(Pickaxe) == 0x598);
 
 class Grenade
 {
@@ -113,22 +121,29 @@ public:
 	char pad_0018[684]; //0x0018
 	float minigunHeatCoolDown; //0x02C4
 	char pad_02C8[344]; //0x02C8
-	class Stats* pStats; //0x0420
-	char pad_0428[520]; //0x0428
-	int32_t ammoSubtraction; //0x0630
+	class WeaponFire* pWeaponFire; //0x0420
+	char pad_0428[512]; //0x0428
+	int32_t maxAmmo; //0x0628
+	int32_t clipSize; //0x062C
+	int32_t shotCost; //0x0630
 	float fireRate; //0x0634
-	char pad_0638[8]; //0x0638
-	float reloadTime; //0x0640
+	float burstCount; //0x0638
+	float burstCycleTime; //0x063C
+	float reloadDuration; //0x0640
 	int32_t reserveAmmo; //0x0644
 	int32_t ammo; //0x0648
 	char pad_064C[36]; //0x064C
 	float shootCooldown; //0x0670
-	char pad_0674[20]; //0x0674
-	float recoilY; //0x0688
-	float recoilYMag; //0x068C
-	float recoilX; //0x0690
-	float recoilxMag; //0x0694
-	char pad_0698[56]; //0x0698
+	char pad_0674[12]; //0x0674
+	float recoilRollMin; //0x0680
+	float recoilRollMax; //0x0684
+	float recoilPitchMin; //0x0688
+	float recoilPitchMax; //0x068C
+	float recoilYawMin; //0x0690
+	float recoilYawMax; //0x0694
+	char pad_0698[16]; //0x0698
+	int8_t hasAutomaticFire; //0x06A8
+	char pad_06A9[39]; //0x06A9
 	float zipLineMaxDistance; //0x06D0
 	float zipLineMinDistance; //0x06D4
 	float zipLineBaseAngle; //0x06D8
@@ -201,43 +216,72 @@ public:
 }; //Size: 0x01DC
 static_assert(sizeof(Position) == 0x1DC);
 
-class Stats
+class WeaponFire
 {
 public:
-	char pad_0000[312]; //0x0000
-	class WeaponDamage* pWeaponDamage; //0x0138
-	char pad_0140[228]; //0x0140
-	float spreadMultY; //0x0224
-	float spreadMultX; //0x0228
-	float spreadY; //0x022C
-	float spreadX; //0x0230
-	char pad_0234[8]; //0x0234
+	char pad_0000[304]; //0x0000
+	float spreadPerShot; //0x0130
+	char pad_0134[4]; //0x0134
+	class DamageComponent* pDamageComponent; //0x0138
+	int8_t useDamageComponent; //0x0140
+	char pad_0141[27]; //0x0141
+	int32_t maxPenetrations; //0x015C
+	int32_t impactDecalSize; //0x0160
+	char pad_0164[4]; //0x0164
+	int32_t useDynamicSpread; //0x0168
+	char pad_016C[20]; //0x016C
+	float minSpead; //0x0180
+	float minSpreadWhileMoving; //0x0184
+	float minSpreadWhileSprinting; //0x0188
+	float maxSpread; //0x018C
+	char pad_0190[148]; //0x0190
+	float verticalSpreadMultiplier; //0x0224
+	float horizontalSpreadMultiplier; //0x0228
+	float maxVerticalSpread; //0x022C
+	float maxHorizontalSpread; //0x0230
+	char pad_0234[4]; //0x0234
+	int32_t ricochetBehavior; //0x0238
 	float ricochetChance; //0x023C
 	char pad_0240[4]; //0x0240
 	float ricochetMaxRange; //0x0244
-	char pad_0248[40]; //0x0248
-	float N000049F9; //0x0270
-	char pad_0274[524]; //0x0274
+	char pad_0248[17]; //0x0248
+	int8_t bulletsCanCarve; //0x0259
+	char pad_025A[14]; //0x025A
+	float carveDiameter; //0x0268
+	char pad_026C[532]; //0x026C
 }; //Size: 0x0480
-static_assert(sizeof(Stats) == 0x480);
+static_assert(sizeof(WeaponFire) == 0x480);
 
-class WeaponDamage
+class DamageComponent
 {
 public:
 	char pad_0000[280]; //0x0000
 	float damage; //0x0118
-	float armorDmgMult; //0x011C
-	char pad_0120[48]; //0x0120
-	float stunChance; //0x0150
-	float stunDuraton; //0x0154
+	float armorDamageMultiplier; //0x011C
+	float armorPenetration; //0x0120
+	float shattersArmor; //0x0124
+	char pad_0128[8]; //0x0128
+	float armorDamageType; //0x0130
+	float weakpointMultiplier; //0x0134
+	float frozenDamageBonusScale; //0x0138
+	float friendlyFireModifier; //0x013C
+	float selfFriendlyFireModifier; //0x0140
+	char pad_0144[8]; //0x0144
+	float staggerOnlyOnWeakpointHit; //0x014C
+	float staggerChance; //0x0150
+	float staggerDuration; //0x0154
 	float fearFactor; //0x0158
-	char pad_015C[72]; //0x015C
-	float areaDamage; //0x01A4
-	char pad_01A8[20]; //0x01A8
-	float areaRange; //0x01BC
-	char pad_01C0[8]; //0x01C0
+	char pad_015C[68]; //0x015C
+	int32_t userAreaOfEffect; //0x01A0
+	float radialDamage; //0x01A4
+	int32_t noFriendlyFireFromRadial; //0x01A8
+	char pad_01AC[12]; //0x01AC
+	float minimumDamagePercentage; //0x01B8
+	float damageRadius; //0x01BC
+	float maxDamageRadius; //0x01C0
+	char pad_01C4[4]; //0x01C4
 }; //Size: 0x01C8
-static_assert(sizeof(WeaponDamage) == 0x1C8);
+static_assert(sizeof(DamageComponent) == 0x1C8);
 
 
 ///////////////////////////////////////////////////////////

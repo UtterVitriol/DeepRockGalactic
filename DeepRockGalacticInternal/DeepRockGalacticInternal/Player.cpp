@@ -6,22 +6,12 @@ void MyPlayer::Start()
 
 	Shoot = (tShoot)(moduleBase + 0x1514AA0);
 
-	// 014c67f0
-	// 014d6ec0
-	// 014b3e50
-	// 0164bf50
-	// 01723ce0
-	// 01723be0
-	// 014bc289
-	// 01647e60
-	// 0185f6c0
-	// 014cae80
-	ShootCharged = (tShootCharged)(moduleBase + 0x01647ea0);
-	// 01647ea0
-
+	// Resources Bad naming....
 	pPlayer = (Player*)Hack::FindDMAAddy(moduleBase + firstOffset_Resources, { 0x8, 0x5F8, 0x0 });
 
 	pGameData = (GameData*)Hack::FindDMAAddy(moduleBase + firstOffset_GameData, { 0x0, 0x20, 0x0 });
+	pWeapon = pGameData->pWeaponData->pCurrentWeapon;
+
 
 	pLast = pGameData;
 }
@@ -45,7 +35,7 @@ void MyPlayer::Validate()
 		}
 
 
-		pGameData = (GameData*)Hack::FindDMAAddy(moduleBase + firstOffset_GameData, { 0x0, 0x20, 0x0 });
+		Start();
 		pLast = pGameData;
 
 
@@ -182,7 +172,7 @@ void MyPlayer::GoodWeapons()
 	case zipline:
 	case piack_axe:
 	case autocannon:
-		pWeapon->ammoSubtraction = -1;
+		pWeapon->shotCost = -1;
 	}
 
 	/*switch (pWeapon->pWeaponType->weaponType)
@@ -203,14 +193,14 @@ void MyPlayer::GoodWeapons()
 		pWeapon->ammo = 1336;
 		pWeapon->fireRate = 100;
 
-		pWeapon->recoilX = 0;
-		pWeapon->recoilxMag = 0;
-		pWeapon->recoilY = 0;
-		pWeapon->recoilYMag = 0;
-		pWeapon->pStats->spreadMultX = 0;
+		pWeapon->recoilYawMin = 0;
+		pWeapon->recoilYawMax = 0;
+		pWeapon->recoilPitchMin = 0;
+		pWeapon->recoilPitchMax = 0;
+		/*pWeapon->pStats->spreadMultX = 0;
 		pWeapon->pStats->spreadX = 0;
 		pWeapon->pStats->spreadMultY = 0;
-		pWeapon->pStats->spreadY = 0;
+		pWeapon->pStats->spreadY = 0;*/
 
 		pWeapon->miniGunSpinUpTime = 0;
 
@@ -228,7 +218,7 @@ void MyPlayer::GoodWeapons()
 		break;
 
 	case coilgun:
-		pWeapon->reserveAmmo = 1337;
+	/*	pWeapon->reserveAmmo = 1337;
 		pWeapon->reloadTime = 0;
 		pWeapon->coilGunCharge = 1;
 		pWeapon->coilGunChargeRate = 10000;
@@ -241,21 +231,21 @@ void MyPlayer::GoodWeapons()
 		pWeapon->pStats->spreadMultX = 0;
 		pWeapon->pStats->spreadX = 0;
 		pWeapon->pStats->spreadMultY = 0;
-		pWeapon->pStats->spreadY = 0;
+		pWeapon->pStats->spreadY = 0;*/
 		break;
 
 	case autocannon:
 		pWeapon->zipLineMaxDistance = 1000;
 		pWeapon->zipLineMinDistance = 1000;
 		pWeapon->ammo = 1336;
-		pWeapon->recoilX = 0;
+		/*pWeapon->recoilX = 0;
 		pWeapon->recoilxMag = 0;
 		pWeapon->recoilY = 0;
 		pWeapon->recoilYMag = 0;
 		pWeapon->pStats->spreadMultX = 0;
 		pWeapon->pStats->spreadX = 0;
 		pWeapon->pStats->spreadMultY = 0;
-		pWeapon->pStats->spreadY = 0;
+		pWeapon->pStats->spreadY = 0;*/
 	}
 
 
@@ -278,10 +268,10 @@ void MyPlayer::GodWeapons()
 	case pistol:
 	case shotgun:
 	case autocannon:
-		pWeapon->pStats->pWeaponDamage->damage = 1000;
+		/*pWeapon->pStats->pWeaponDamage->damage = 1000;
 		pWeapon->pStats->pWeaponDamage->fearFactor = 100;
 		pWeapon->pStats->pWeaponDamage->stunChance = 100;
-		pWeapon->pStats->pWeaponDamage->stunDuraton = 100;
+		pWeapon->pStats->pWeaponDamage->stunDuraton = 100;*/
 		pWeapon->fireRate = 1000;
 		break;
 
@@ -292,8 +282,8 @@ void MyPlayer::GodWeapons()
 
 	if (pWeapon->pWeaponType->weaponType == autocannon)
 	{
-		pWeapon->pStats->pWeaponDamage->areaDamage = 1000;
-		pWeapon->pStats->pWeaponDamage->areaRange = 1000000;
+		/*pWeapon->pStats->pWeaponDamage->areaDamage = 1000;
+		pWeapon->pStats->pWeaponDamage->areaRange = 1000000;*/
 	}
 }
 

@@ -2,10 +2,10 @@
 #include "imgui.h"
 
 void MyMenu();
-void MenuBar();
 static void LogMenu();
 void ResourceMenu(bool *bShowMenu);
 void PlayerMenu();
+void WeaponMenu();
 
 
 // Usage:
