@@ -60,6 +60,9 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 		{
 			break;
 		}
+
+		//g_player.UpdateValues();
+
 		Sleep(5);
 	}
 

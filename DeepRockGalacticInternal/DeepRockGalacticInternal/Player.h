@@ -19,9 +19,14 @@ public:
 	void Start();
 	void Validate();
 	void Stop();
+	char* GetEquiptName();
 	void UpdateValues();
 
 	uintptr_t moduleBase = 0;
+
+	uint64_t fNameTableOffset = 0x606BC40;
+	uintptr_t fNameTable = NULL;
+	char equiptName[1024];
 
 	uint32_t firstOffset_Resources = 0x061E9F80;
 	std::vector<unsigned int> offsets_Resources = { 0x8, 0x5F8, 0x0 };

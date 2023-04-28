@@ -1,12 +1,17 @@
 #include "Player.h"
 
+#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#define DERR(s) log.AddLog("[-]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
+#define DMSG(s) log.AddLog("[+]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
+
 void MyPlayer::Start()
 {
 	moduleBase = (uintptr_t)GetModuleHandle(L"FSD-Win64-Shipping.exe");
 
 	Shoot = (tShoot)(moduleBase + 0x1514AA0);
+	fNameTable = (moduleBase + fNameTableOffset);
 
-	// Resources Bad naming....
+	// TODO: Resources Bad naming....
 	pPlayer = (Player*)Hack::FindDMAAddy(moduleBase + firstOffset_Resources, { 0x8, 0x5F8, 0x0 });
 
 	pGameData = (GameData*)Hack::FindDMAAddy(moduleBase + firstOffset_GameData, { 0x0, 0x20, 0x0 });
@@ -74,6 +79,53 @@ void MyPlayer::Stop()
 	}
 }
 
+void SetName(char* toSet, char* str)
+{
+	memset(toSet, 0, 1024);
+
+	for (int i = 0; i < 1024; i++)
+	{
+		if (str[i] > 0 && str[i] < 255)
+		{
+			toSet[i] = str[i];
+		}
+		else
+		{
+			return;
+		}
+	}
+	return;
+}
+
+char* MyPlayer::GetEquiptName()
+{
+	char* Name = (char*)"Name Not Found";
+	uint32_t FNameIndex = pGameData->pWeaponData->pCurrentWeapon->FNameIndex;
+	if (FNameIndex < 1)
+	{
+		return Name;
+	}
+
+	uint32_t NumElements = (uint32_t)fNameTable + 0xC;
+	uint32_t NumChunks = (uint32_t)fNameTable + 0x8;
+	uint32_t ChunkIndex = FNameIndex >> 16;
+	uint32_t NameIndex = (FNameIndex << 16) >> 16;
+
+	if (NameIndex < NumElements && ChunkIndex < NumChunks)
+	{
+		uintptr_t ChunkPtr = *(uintptr_t*)(fNameTable + ((ChunkIndex + 0x2) * 0x8));
+
+		if (ChunkPtr)
+		{
+			uintptr_t NamePtr = (ChunkPtr + (NameIndex * 2));
+			uintptr_t NameEntryIndex = *(uintptr_t*)(NamePtr);
+			Name = (char*)(NamePtr + 0x2);
+			SetName(equiptName, Name);
+			return equiptName;
+		}
+	}
+	return Name;
+}
 
 void MyPlayer::UpdateValues()
 {

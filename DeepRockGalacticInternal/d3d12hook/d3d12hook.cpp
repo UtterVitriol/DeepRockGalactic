@@ -7,7 +7,6 @@
 
 extern D3D12Hook MyHook;
 
-// WORD WINAPI MainThread(LPVOID lpParameter) 
 bool D3D12Hook::d3d12InitHook()
 {
 

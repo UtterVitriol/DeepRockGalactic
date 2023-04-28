@@ -206,7 +206,7 @@ void PlayerMenu()
 /// </summary>
 void WeaponMenu()
 {
-	ImGui::Begin("Weapon Data");
+	ImGui::Begin(g_player.GetEquiptName());
 
 	ImGui::InputInt("Shot Cost", &g_player.pGameData->pWeaponData->pCurrentWeapon->shotCost);
 	ImGui::InputInt("Max Ammo", &g_player.pGameData->pWeaponData->pCurrentWeapon->maxAmmo);

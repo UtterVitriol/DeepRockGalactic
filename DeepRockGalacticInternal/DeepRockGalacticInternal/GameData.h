@@ -118,7 +118,8 @@ class Weapon
 public:
 	char pad_0000[16]; //0x0000
 	class HasWeaponType* pWeaponType; //0x0010
-	char pad_0018[684]; //0x0018
+	uint32_t FNameIndex; //0x0018
+	char pad_001C[680]; //0x001C
 	float minigunHeatCoolDown; //0x02C4
 	char pad_02C8[344]; //0x02C8
 	class WeaponFire* pWeaponFire; //0x0420
