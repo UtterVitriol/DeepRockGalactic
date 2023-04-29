@@ -10,7 +10,6 @@ void PlayerMenu();
 void WeaponMenu(char* MenuName, Weapon **pWeapon);
 void TraversalMenu(char* MenuName, TraversalTool **pWeapon);
 
-
 // Usage:
 //  static ExampleAppLog my_log;
 //  my_log.AddLog("Hello %d world\n", 123);

@@ -2,6 +2,7 @@
 
 #include "GameData.h"
 #include "Hack.h"
+#include "Menus.h"
 
 #include <vector>
 
@@ -11,9 +12,6 @@ class MyGame
 {
 public:
 	struct AppLog log;
-
-
-
 	uintptr_t m_ModuleBase = 0;
 
 	// FnameTable sutff.

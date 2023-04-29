@@ -8,7 +8,6 @@
 
 extern MyGame g_Game;
 
-
 void MyMenu()
 {
 	const float MAX_SCALE = 3.0F;
@@ -20,13 +19,11 @@ void MyMenu()
 	static float window_scale = 1.5f;
 
 	static bool bShowAppLog = false;
-
 	static bool bShowResources = false;
 	static bool bShowPlayer = false;
 	static bool bShowPrimaryWeapon = false;
 	static bool bShowSecondaryWeapon = false;
 	static bool bShowTraversalTool = false;
-
 	static bool bShowMenu = false;
 
 	if (!ImGui::Begin("Tingle's Internal Trainer", (bool*)0, ImGuiWindowFlags_MenuBar))
@@ -64,7 +61,6 @@ void MyMenu()
 				//ImGui::TableNextColumn(); ImGui::Checkbox("Rapid Fire", &g_Game.bRapidFire);
 				//ImGui::TableNextColumn(); ImGui::Checkbox("Steroids", &g_Game.bSteroids);
 
-
 				ImGui::TableNextColumn();
 				if (ImGui::Checkbox("Infinite Health", &g_Game.bHookHealth))
 				{
@@ -76,7 +72,6 @@ void MyMenu()
 				{
 					g_Game.HookArmor();
 				}
-
 
 				ImGui::TableNextColumn(); 
 				if (ImGui::Checkbox("Hook Minerals", &g_Game.bHookMinerals))
@@ -113,10 +108,7 @@ void MyMenu()
 		}
 
 	}
-
-
 	
-
 	if (ImGui::CollapsingHeader("Settings")) {
 		//if (ImGui::DragFloat("window scale", &window_scale, 0.005f, MIN_SCALE, MAX_SCALE, "%.2f", ImGuiSliderFlags_AlwaysClamp)) // Scale only this window
 		//	ImGui::SetWindowFontScale(window_scale);
@@ -153,10 +145,6 @@ void MyMenu()
 	{
 		TraversalMenu(g_Game.m_TraversalName, &g_Game.pCharacter->pEquipables->pTraversalTool);
 	}
-
-
-	// Update values once per frame
-	//g_player.UpdateValues();
 }
 
 /// <summary>
@@ -164,13 +152,7 @@ void MyMenu()
 /// </summary>
 static void LogMenu()
 {
-	// For the demo: add a debug button _BEFORE_ the normal log window contents
-	// We take advantage of a rarely used feature: multiple calls to Begin()/End() are appending to the _same_ window.
-	// Most of the contents of the window will be added by the log.Draw() call.
 	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-	/*ImGui::Begin("Example: Log");
-	ImGui::End();*/
-	// Actually call in the regular Log helper (which will Begin() into the same window as we just did)
 	g_Game.log.Draw("Debug Log");
 }
 
@@ -212,7 +194,6 @@ void ResourceMenu(bool* bShowMenu)
 	ImGui::InputFloat("Starch Nut", &g_Game.pSavedGame->Resources->StarchNut, 1, 100, "%.0f");
 
 	ImGui::End();
-
 }
 
 /// <summary>
@@ -250,7 +231,6 @@ void PlayerMenu()
 
 	ImGui::SeparatorText("Position");
 
-
 	if (ImGui::InputFloat3("Position", (float*)&g_Game.pCharacter->pCharacterMovement->pPosition->position, "%.0f"))
 	{
 		g_Game.log.AddLog("Changed");
@@ -268,7 +248,6 @@ void PlayerMenu()
 	{
 		g_Game.TeleportLocation();
 	}
-
 
 	if (ImGui::InputFloat3("Saved Position", (float*)&g_Game.m_TelePortLocation, "%.0f", ImGuiInputTextFlags_ReadOnly))
 	{
@@ -320,7 +299,6 @@ void WeaponMenu(char* MenuName, Weapon** pWeapon)
 	ImGui::InputFloat("Horizontal Spread Multiplier", &(*pWeapon)->pWeaponFire->horizontalSpreadMultiplier, 1, 100, "%.0f");
 	ImGui::InputFloat("Max Horizontal Spread", &(*pWeapon)->pWeaponFire->maxHorizontalSpread, 1, 100, "%.0f");
 
-
 	ImGui::Separator();
 
 	ImGui::InputInt("Max Penetrations", &(*pWeapon)->pWeaponFire->maxPenetrations);
@@ -351,10 +329,8 @@ void WeaponMenu(char* MenuName, Weapon** pWeapon)
 	ImGui::InputFloat("Damage Radius", &(*pWeapon)->pWeaponFire->pDamageComponent->damageRadius, 1, 100, "%.0f");
 	ImGui::InputFloat("Max Damage Radius", &(*pWeapon)->pWeaponFire->pDamageComponent->maxDamageRadius, 1, 100, "%.0f");
 
-
 	ImGui::End();
 }
-
 
 /// <summary>
 /// Shows Weapon Stats Crashes if you pick anything up while open
@@ -391,7 +367,6 @@ void TraversalMenu(char* MenuName, TraversalTool** pWeapon)
 	ImGui::InputFloat("Zipline Max Distance", &(*pWeapon)->zipLineMaxDistance, 1, 100, "%.0f");
 	ImGui::InputFloat("Zipline Min Angle", &(*pWeapon)->zipLineBaseAngle, 1, 100, "%.0f");
 	ImGui::InputFloat("Zipline Max Angle", &(*pWeapon)->zipLineMaxAngle, 1, 100, "%.0f");
-
 
 	ImGui::End();
 }

@@ -8,15 +8,8 @@
 
 #include "d3d12hook.h"
 
-typedef void (*tShoot)(Weapon*);
-
-tShoot Shoot = nullptr; // Modulebase + 1514AA0
-
-uintptr_t moduleBase = (uintptr_t)GetModuleHandle(NULL);
-
 D3D12Hook MyHook;
 MyGame g_Game;
-
 
 DWORD WINAPI HackThread(HMODULE hModule) {
 	g_Game.Start();
@@ -25,13 +18,11 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 
 	HWND hWnd = NULL;
 	
-
 	if (!MyHook.d3d12InitHook())
 	{
 		goto END;
 	}
 	
-
 	while (1) {
 
 		if (GetAsyncKeyState(VK_END) & 1)
@@ -43,22 +34,14 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 
 		Sleep(5);
 	}
-
-
 	
-
 	MyHook.d3d12UnHook();
 
 END:
 	FreeLibraryAndExitThread(hModule, 0);
 }
 
-
-
-BOOL APIENTRY DllMain(HMODULE hModule,
-	DWORD  ul_reason_for_call,
-	LPVOID lpReserved
-)
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	DisableThreadLibraryCalls(hModule);
 

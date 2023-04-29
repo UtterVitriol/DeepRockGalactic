@@ -55,12 +55,10 @@ void MyGame::ValidateCharacter()
 		pCharacter = NULL;
 		ExitMission();
 
-
 		while (!bIsOnMission)
 		{
 			Sleep(5);
 		}
-
 
 		Start();
 		pLast = pCharacter;
@@ -81,8 +79,6 @@ void MyGame::UpdateValues()
 	}
 
 	return;
-
-
 }
 
 void MyGame::ExitMission()
@@ -102,7 +98,6 @@ void MyGame::ExitMission()
 	InventoryComponent* pFlairs = NULL;
 
 }
-
 
 void SetName(char* toSet, char* str)
 {
@@ -156,7 +151,6 @@ char* MyGame::GetFName(uint32_t index, char* destination)
 	return Name;
 }
 
-
 void MyGame::SaveLocation()
 {
 	m_TelePortLocation.x = pCharacter->pCharacterMovement->pPosition->position.x;
@@ -170,7 +164,6 @@ void MyGame::TeleportLocation()
 	pCharacter->pCharacterMovement->pPosition->position.y = m_TelePortLocation.y;
 	pCharacter->pCharacterMovement->pPosition->position.z = m_TelePortLocation.z;
 }
-
 
 void MyGame::HookMinerals()
 {
@@ -196,7 +189,6 @@ void MyGame::HookObjective()
 			(BYTE*)"\xF3\x0F\x5D\x91\x88\x01\x00\x00\xF3\x0F\x11\x91\x8C\x01\x00\x00", 16);
 	}
 }
-
 
 void MyGame::HookHealth()
 {

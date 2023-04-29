@@ -9,7 +9,6 @@ extern D3D12Hook MyHook;
 
 bool D3D12Hook::d3d12InitHook()
 {
-
 	bool HasWindowHandle = false;
 	while (HasWindowHandle == false) {
 
@@ -46,11 +45,8 @@ bool D3D12Hook::d3d12InitHook()
 		kiero::bind(140, (void**)&MyHook.oPresent, hkPresent);
 		return true;
 	}
-	else
-	{
-		return false;
-	}
-	
+
+	return false;
 }
 
 void D3D12Hook::d3d12UnHook()
@@ -75,9 +71,6 @@ void D3D12Hook::d3d12UnHook()
 	ImGui::DestroyContext();
 }
 
-
-
-
 LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (MyHook.ShowMenu) {
@@ -86,8 +79,6 @@ LRESULT APIENTRY WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	return CallWindowProc(MyHook.process.WndProc, hwnd, uMsg, wParam, lParam);
 }
-
-
 
 /// <summary>
 ///	Sets My Command queue to process command queue
@@ -188,13 +179,10 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 
 	if (!MyHook.bShutDown)
 	{
-
-
 		if (GetAsyncKeyState(VK_INSERT) & 1)
 		{
 			MyHook.ShowMenu = !MyHook.ShowMenu;
 		}
-
 
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -235,7 +223,6 @@ HRESULT APIENTRY hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT 
 	}
 	return MyHook.oPresent(pSwapChain, SyncInterval, Flags);
 }
-
 
 //
 // Start My Hooks
@@ -287,8 +274,6 @@ void APIENTRY hkDrawIndexedInstanced(ID3D12GraphicsCommandList* dCommandList, UI
 //
 // End My Hooks
 //
-
-
 
 //=========================================================================================================================//
 

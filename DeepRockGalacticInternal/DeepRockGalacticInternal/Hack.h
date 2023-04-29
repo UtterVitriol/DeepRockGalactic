@@ -4,8 +4,6 @@
 #include <vector>
 #include <TlHelp32.h>
 
-#include "Player.h"
-
 constexpr auto INST_NOP = 0x90;
 constexpr auto INST_CALL = 0x08EB0000000215FF; // Note: This is flipped around to how it appears in memory because x86 processors are little endian
 constexpr auto INST_CALL_SIZE = 16; // size of call + size of function address ?
