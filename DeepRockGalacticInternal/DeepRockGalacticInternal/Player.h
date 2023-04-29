@@ -16,6 +16,10 @@ class MyPlayer
 public:
 	struct AppLog log;
 
+
+
+	// OLD
+
 	void Start();
 	void Validate();
 	void Stop();
@@ -35,14 +39,10 @@ public:
 	std::vector<unsigned int> offsets_GameData = { 0x0, 0x20, 0x0 };
 
 	// resources 
-	Player* pPlayer = NULL;
+	//Player* pPlayer = NULL;
 
-	GameData* pGameData = NULL;
-	GameData* pLast = NULL;
-
-	WeaponData* pWeaponData = NULL;
-	Weapon* pWeapon = NULL;
-	Body* pBody = NULL;
+	Character* pCharacter = NULL;
+	Character* pLast = NULL;
 
 
 	void GoodWeapons();
@@ -51,7 +51,6 @@ public:
 	void Steroids();
 	void Teleport();
 
-	TrainerDisplay Display;
 
 
 

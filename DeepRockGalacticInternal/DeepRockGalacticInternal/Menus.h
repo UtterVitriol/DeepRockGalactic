@@ -1,11 +1,14 @@
 #pragma once
 #include "imgui.h"
+#include "GameData.h"
+
 
 void MyMenu();
 static void LogMenu();
 void ResourceMenu(bool *bShowMenu);
 void PlayerMenu();
-void WeaponMenu();
+void WeaponMenu(char* MenuName, Weapon **pWeapon);
+void TraversalMenu(char* MenuName, TraversalTool **pWeapon);
 
 
 // Usage:

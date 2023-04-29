@@ -1,12 +1,13 @@
 #include "Menus.h"
 #include "Player.h"
+#include "Game.h"
 #include "imgui.h"
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 #define DERR(s) g_player.log.AddLog("[-]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
 #define DMSG(s) g_player.log.AddLog("[+]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
 
-extern MyPlayer g_player;
+extern MyGame g_Game;
 
 
 void MyMenu()
@@ -23,7 +24,9 @@ void MyMenu()
 
 	static bool bShowResources = false;
 	static bool bShowPlayer = false;
-	static bool bShowWeapon = false;
+	static bool bShowPrimaryWeapon = false;
+	static bool bShowSecondaryWeapon = false;
+	static bool bShowTraversalTool = false;
 
 	static bool bShowMenu = false;
 
@@ -47,16 +50,39 @@ void MyMenu()
 
 	ImGui::Text("Press END to Eject :)");             // Display some text (you can use a format strings too)
 
-	if (ImGui::CollapsingHeader("Stats"))
+	if (!g_Game.bIsOnMission)
+	{
+		ImGui::Checkbox("On Mission", &g_Game.bIsOnMission);
+	}
+	else
+	{
+		if (ImGui::CollapsingHeader("Hacks"))
+		{
+			if (ImGui::BeginTable("split", 3))
+			{
+				ImGui::TableNextColumn(); ImGui::Checkbox("Good Weapons", &g_Game.bGoodWeapons);
+				ImGui::TableNextColumn(); ImGui::Checkbox("God Weapons", &g_Game.bGodWeapons);
+				ImGui::TableNextColumn(); ImGui::Checkbox("Rapid Fire", &g_Game.bRapidFire);
+				ImGui::TableNextColumn(); ImGui::Checkbox("Steroids", &g_Game.bSteroids);
+				ImGui::TableNextColumn(); ImGui::Checkbox("Hook Minerals", &g_Game.bHookMinerals);
+				ImGui::TableNextColumn(); ImGui::Checkbox("Hook Mineral Objective", &g_Game.bHookObjective);
+				ImGui::EndTable();
+			}
+		}
+	}
+
+	if (ImGui::CollapsingHeader("Set Values"))
 	{
 		if (ImGui::BeginTable("split", 4))
 		{
 			ImGui::TableNextColumn();  ImGui::Checkbox("Resources", &bShowResources);
 			ImGui::TableNextColumn();  ImGui::Checkbox("Player", &bShowPlayer);
 
-			if (g_player.bIsOnMission)
+			if (g_Game.bIsOnMission)
 			{
-				ImGui::TableNextColumn();  ImGui::Checkbox("Weapon", &bShowWeapon);
+				ImGui::TableNextColumn();  ImGui::Checkbox("Primary Weapon", &bShowPrimaryWeapon);
+				ImGui::TableNextColumn();  ImGui::Checkbox("Secondary Weapon", &bShowSecondaryWeapon);
+				ImGui::TableNextColumn();  ImGui::Checkbox("Traversal Tool", &bShowTraversalTool);
 			}
 
 			ImGui::EndTable();
@@ -66,26 +92,7 @@ void MyMenu()
 	}
 
 
-	if (!g_player.bIsOnMission)
-	{
-		ImGui::Checkbox("On Mission", &g_player.bIsOnMission);
-	}
-	else
-	{
-		if (ImGui::CollapsingHeader("Hacks"))
-		{
-			if (ImGui::BeginTable("split", 3))
-			{
-				ImGui::TableNextColumn(); ImGui::Checkbox("Good Weapons", &g_player.bGoodWeapons);
-				ImGui::TableNextColumn(); ImGui::Checkbox("God Weapons", &g_player.bGodWeapons);
-				ImGui::TableNextColumn(); ImGui::Checkbox("Rapid Fire", &g_player.bRapidFire);
-				ImGui::TableNextColumn(); ImGui::Checkbox("Steroids", &g_player.bSteroids);
-				ImGui::TableNextColumn(); ImGui::Checkbox("Hook Minerals", &g_player.bHookMinerals);
-				ImGui::TableNextColumn(); ImGui::Checkbox("Hook Mineral Objective", &g_player.bHookObjective);
-				ImGui::EndTable();
-			}
-		}
-	}
+	
 
 	if (ImGui::CollapsingHeader("Settings")) {
 		//if (ImGui::DragFloat("window scale", &window_scale, 0.005f, MIN_SCALE, MAX_SCALE, "%.2f", ImGuiSliderFlags_AlwaysClamp)) // Scale only this window
@@ -109,9 +116,19 @@ void MyMenu()
 		PlayerMenu();
 	}
 
-	if (bShowWeapon && g_player.bIsOnMission)
+	if (bShowPrimaryWeapon && g_Game.bIsOnMission)
 	{
-		WeaponMenu();
+		WeaponMenu(g_Game.m_PrimaryName, &g_Game.pCharacter->pEquipables->pPrimaryGun);
+	}
+
+	if (bShowSecondaryWeapon && g_Game.bIsOnMission)
+	{
+		WeaponMenu(g_Game.m_SecondaryName, & g_Game.pCharacter->pEquipables->pSecondayGun);
+	}
+
+	if (bShowTraversalTool && g_Game.bIsOnMission)
+	{
+		TraversalMenu(g_Game.m_TraversalName, &g_Game.pCharacter->pEquipables->pTraversalTool);
 	}
 
 
@@ -131,7 +148,7 @@ static void LogMenu()
 	/*ImGui::Begin("Example: Log");
 	ImGui::End();*/
 	// Actually call in the regular Log helper (which will Begin() into the same window as we just did)
-	g_player.log.Draw("Debug Log");
+	g_Game.log.Draw("Debug Log");
 }
 
 /// <summary>
@@ -149,27 +166,27 @@ void ResourceMenu(bool* bShowMenu)
 
 	ImGui::SeparatorText("Misc");
 
-	ImGui::InputInt("Credits", &g_player.pPlayer->Credits);
+	ImGui::InputInt("Credits", &g_Game.pSavedGame->Credits);
 
 	ImGui::SeparatorText("Cosmetic");
 
-	ImGui::InputFloat("Phazyonite", &g_player.pPlayer->Resources->Phazyonite, 1, 100, "%.0f");
+	ImGui::InputFloat("Phazyonite", &g_Game.pSavedGame->Resources->Phazyonite, 1, 100, "%.0f");
 
 	ImGui::SeparatorText("Crafting");
 
-	ImGui::InputFloat("Magnite", &g_player.pPlayer->Resources->Magnite, 1, 100, "%.0f");
-	ImGui::InputFloat("Bismor", &g_player.pPlayer->Resources->Bismor, 1, 100, "%.0f");
-	ImGui::InputFloat("Umanite", &g_player.pPlayer->Resources->Umanite, 1, 100, "%.0f");
-	ImGui::InputFloat("Croppa", &g_player.pPlayer->Resources->Croppa, 1, 100, "%.0f");
-	ImGui::InputFloat("Enor Pearl", &g_player.pPlayer->Resources->EnorPearl, 1, 100, "%.0f");
-	ImGui::InputFloat("Jadiz", &g_player.pPlayer->Resources->Jadiz, 1, 100, "%.0f");
+	ImGui::InputFloat("Magnite", &g_Game.pSavedGame->Resources->Magnite, 1, 100, "%.0f");
+	ImGui::InputFloat("Bismor", &g_Game.pSavedGame->Resources->Bismor, 1, 100, "%.0f");
+	ImGui::InputFloat("Umanite", &g_Game.pSavedGame->Resources->Umanite, 1, 100, "%.0f");
+	ImGui::InputFloat("Croppa", &g_Game.pSavedGame->Resources->Croppa, 1, 100, "%.0f");
+	ImGui::InputFloat("Enor Pearl", &g_Game.pSavedGame->Resources->EnorPearl, 1, 100, "%.0f");
+	ImGui::InputFloat("Jadiz", &g_Game.pSavedGame->Resources->Jadiz, 1, 100, "%.0f");
 
 	ImGui::SeparatorText("Beer");
 
-	ImGui::InputFloat("Barley Bulb", &g_player.pPlayer->Resources->BarleyBulb, 1, 100, "%.0f");
-	ImGui::InputFloat("Yeast Cone", &g_player.pPlayer->Resources->YeastCone, 1, 100, "%.0f");
-	ImGui::InputFloat("Malt Star", &g_player.pPlayer->Resources->MaltStar, 1, 100, "%.0f");
-	ImGui::InputFloat("Starch Nut", &g_player.pPlayer->Resources->StarchNut, 1, 100, "%.0f");
+	ImGui::InputFloat("Barley Bulb", &g_Game.pSavedGame->Resources->BarleyBulb, 1, 100, "%.0f");
+	ImGui::InputFloat("Yeast Cone", &g_Game.pSavedGame->Resources->YeastCone, 1, 100, "%.0f");
+	ImGui::InputFloat("Malt Star", &g_Game.pSavedGame->Resources->MaltStar, 1, 100, "%.0f");
+	ImGui::InputFloat("Starch Nut", &g_Game.pSavedGame->Resources->StarchNut, 1, 100, "%.0f");
 
 	ImGui::End();
 
@@ -180,23 +197,60 @@ void ResourceMenu(bool* bShowMenu)
 /// </summary>
 void PlayerMenu()
 {
+	const char* DanceMoves[] = { "Dance Move 1", "Dance Move 2", "Dance Move 3", "Dance Move 4", "Dance Move 5",
+		"Dance Move 6", "Dance Move 7", "Dance Move 8", "Dance Move 9", "Dance Move 10", "Dance Move 11",
+		"Dance Move 12", "Dance Move 13", "Dance Move 14", "Dance Move 15", "Dance Move 16", "Dance Move 17", "Dance Move 18" };
 
 	ImGui::Begin("Player Data");
 
-	ImGui::InputFloat("Health Damage Taken", &g_player.pGameData->pPlayerData->Health, 1, 100);
-	ImGui::InputFloat("Shield Damage Taken", &g_player.pGameData->pPlayerData->ShieldInversePercentage, 1, 100);
-	ImGui::InputInt("Jump Number", &g_player.pGameData->pPlayerData->pBody->jumpNumber);
-	ImGui::InputFloat("Jump Heigt", &g_player.pGameData->pPlayerData->pBody->pMovement->jumpHeight, 1, 100, "%.0f");
-	ImGui::InputFloat("Walk Speed", &g_player.pGameData->pPlayerData->pBody->pMovement->walkSpeed, 1, 100, "%.0f");
-	ImGui::InputFloat("Run Speed", &g_player.pGameData->pPlayerData->pBody->pMovement->pRunSpeed->runSpeed, 1, 100, "%.0f");
+	ImGui::SeparatorText("General");
+
+	ImGui::InputFloat("Health Damage Taken", &g_Game.pCharacter->pHealthComponent->characterDamage, 1, 100);
+	ImGui::InputFloat("Shield Damage Taken", &g_Game.pCharacter->pHealthComponent->shieldDamage, 1, 100);
+	ImGui::InputInt("Jump Number", &g_Game.pCharacter->jumpMaxCount);
+	ImGui::InputFloat("Jump Heigt", &g_Game.pCharacter->pCharacterMovement->jumpHeight, 1, 100, "%.0f");
+	ImGui::InputFloat("Walk Speed", &g_Game.pCharacter->pCharacterMovement->walkSpeed, 1, 100, "%.0f");
+	ImGui::InputFloat("Run Speed", &g_Game.pCharacter->runningSpeed, 1, 100, "%.0f");
+	ImGui::InputFloat("Run Boost", &g_Game.pCharacter->runBoost, 1, 100, "%.0f");
+	ImGui::InputFloat("Carrying Movement Penalty", &g_Game.pCharacter->carryingMovementSpeedPenalty, 1, 100, "%.0f");
+	ImGui::InputFloat("Carrying Throw Min Force", &g_Game.pCharacter->carryingThrowMinForce, 1, 100, "%.0f");
+	ImGui::InputFloat("Carrying Throw Max Force", &g_Game.pCharacter->carryingThrowMaxForce, 1, 100, "%.0f");
+	ImGui::InputFloat("Gravity Scale", &g_Game.pCharacter->pCharacterMovement->gravityScale, .01, .1, "%.3f");
+	
+	ImGui::SeparatorText("Dancing");
+
+	ImGui::Checkbox("Dance", (bool*)&g_Game.pCharacter->isDanceRange);
+
+	if (g_Game.pCharacter->isDanceRange) {
+		ImGui::Combo("Dance Moves", &g_Game.pCharacter->danceMove, DanceMoves, IM_ARRAYSIZE(DanceMoves));
+	}
+
+	ImGui::SeparatorText("Position");
+
+
+	if (ImGui::InputFloat3("Position", (float*)&g_Game.pCharacter->pCharacterMovement->pPosition->position, "%.0f"))
+	{
+		g_Game.log.AddLog("Changed");
+	}
 
 	ImGui::Separator();
-
-	if (ImGui::InputFloat3("Position", (float*)&g_player.pGameData->pPlayerData->pBody->pMovement->pPosition->position, "%.0f"))
+	
+	if (ImGui::Button("Save"))
 	{
-		g_player.log.AddLog("Changed");
+		g_Game.SaveLocation();
 	}
-	ImGui::InputFloat3("Velocity", (float*)&g_player.pGameData->pPlayerData->pBody->pMovement->velocity, "%.0f");
+
+	ImGui::SameLine();
+	if (ImGui::Button("Teleport"))
+	{
+		g_Game.TeleportLocation();
+	}
+
+
+	if (ImGui::InputFloat3("Saved Position", (float*)&g_Game.m_TelePortLocation, "%.0f", ImGuiInputTextFlags_ReadOnly))
+	{
+		g_Game.log.AddLog("Changed");
+	}
 
 	ImGui::End();
 }
@@ -204,61 +258,116 @@ void PlayerMenu()
 /// <summary>
 /// Shows Weapon Stats Crashes if you pick anything up while open
 /// </summary>
-void WeaponMenu()
+void WeaponMenu(char* MenuName, Weapon** pWeapon)
 {
-	ImGui::Begin(g_player.GetEquiptName());
+	ImGui::Begin(MenuName);
 
-	ImGui::InputInt("Shot Cost", &g_player.pGameData->pWeaponData->pCurrentWeapon->shotCost);
-	ImGui::InputInt("Max Ammo", &g_player.pGameData->pWeaponData->pCurrentWeapon->maxAmmo);
-	ImGui::InputInt("Mag Size", &g_player.pGameData->pWeaponData->pCurrentWeapon->clipSize);
-	ImGui::InputInt("Reserve Ammo", &g_player.pGameData->pWeaponData->pCurrentWeapon->reserveAmmo);
-	ImGui::InputInt("Ammo", &g_player.pGameData->pWeaponData->pCurrentWeapon->ammo);
-
-	ImGui::Separator();
-
-	ImGui::InputFloat("Fire Rate", &g_player.pGameData->pWeaponData->pCurrentWeapon->fireRate, 1, 100, "%.0f");
-	ImGui::Checkbox("Automattic Fire", (bool*)&g_player.pGameData->pWeaponData->pCurrentWeapon->hasAutomaticFire);
+	ImGui::InputInt("Shot Cost", &(*pWeapon)->shotCost);
+	ImGui::InputInt("Max Ammo", &(*pWeapon)->maxAmmo);
+	ImGui::InputInt("Mag Size", &(*pWeapon)->clipSize);
+	ImGui::InputInt("Reserve Ammo", &(*pWeapon)->reserveAmmo);
+	ImGui::InputInt("Ammo", &(*pWeapon)->ammo);
 
 	ImGui::Separator();
 
-	ImGui::InputFloat("Reload Duration", &g_player.pGameData->pWeaponData->pCurrentWeapon->reloadDuration, 1, 100, "%.0f");
+	ImGui::InputFloat("Fire Rate", &(*pWeapon)->fireRate, 1, 100, "%.0f");
+	ImGui::InputFloat("Starting Fire Rate", &(*pWeapon)->startingFireRate, 1, 100, "%.0f");
+	ImGui::InputFloat("Max Fire Rate", &(*pWeapon)->maxFireRate, 1, 100, "%.0f");
+	ImGui::Checkbox("Automattic Fire", (bool*)&(*pWeapon)->hasAutomaticFire);
 
 	ImGui::Separator();
 
-	ImGui::InputFloat("Vertical Recoil Min", &g_player.pGameData->pWeaponData->pCurrentWeapon->recoilPitchMin, 1, 100, "%.0f");
-	ImGui::InputFloat("Vertical Recoil Max", &g_player.pGameData->pWeaponData->pCurrentWeapon->recoilPitchMax, 1, 100, "%.0f");
-	ImGui::InputFloat("Horizontal Recoil Min", &g_player.pGameData->pWeaponData->pCurrentWeapon->recoilYawMin, 1, 100, "%.0f");
-	ImGui::InputFloat("Horizontal Recoil Max", &g_player.pGameData->pWeaponData->pCurrentWeapon->recoilYawMax, 1, 100, "%.0f");
+	ImGui::InputFloat("Reload Duration", &(*pWeapon)->reloadDuration, 1, 100, "%.0f");
 
 	ImGui::Separator();
 
-	ImGui::InputInt("Max Penetrations", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->maxPenetrations);
-	ImGui::InputFloat("Ricochet Chance", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->ricochetChance, 1, 100, "%.0f");
-	ImGui::InputFloat("Ricochet Max Range", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->ricochetMaxRange, 1, 100, "%.0f");
+	ImGui::InputFloat("Vertical Recoil Min", &(*pWeapon)->recoilPitchMin, 1, 100, "%.0f");
+	ImGui::InputFloat("Vertical Recoil Max", &(*pWeapon)->recoilPitchMax, 1, 100, "%.0f");
+	ImGui::InputFloat("Horizontal Recoil Min", &(*pWeapon)->recoilYawMin, 1, 100, "%.0f");
+	ImGui::InputFloat("Horizontal Recoil Max", &(*pWeapon)->recoilYawMax, 1, 100, "%.0f");
 
 	ImGui::Separator();
 
-	ImGui::Checkbox("Bullets Can Carve", (bool*)&g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->bulletsCanCarve);
-	ImGui::InputFloat("Carve Diameter", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->carveDiameter, 1, 100, "%.0f");
+	ImGui::InputFloat("Min Bullet Spread", &(*pWeapon)->pWeaponFire->minSpead, 1, 100, "%.0f");
+	ImGui::InputFloat("Max Bullet Spread", &(*pWeapon)->pWeaponFire->maxSpread, 1, 100, "%.0f");
+	ImGui::InputFloat("Min Bullet Spread While Moving", &(*pWeapon)->pWeaponFire->minSpreadWhileMoving, 1, 100, "%.0f");
+	ImGui::InputFloat("Min Bullet Spread While Sprinting", &(*pWeapon)->pWeaponFire->minSpreadWhileSprinting, 1, 100, "%.0f");
+	ImGui::InputFloat("Vertical Spread Multiplier", &(*pWeapon)->pWeaponFire->verticalSpreadMultiplier, 1, 100, "%.0f");
+	ImGui::InputFloat("Max Vertical Spread", &(*pWeapon)->pWeaponFire->maxVerticalSpread, 1, 100, "%.0f");
+	ImGui::InputFloat("Horizontal Spread Multiplier", &(*pWeapon)->pWeaponFire->horizontalSpreadMultiplier, 1, 100, "%.0f");
+	ImGui::InputFloat("Max Horizontal Spread", &(*pWeapon)->pWeaponFire->maxHorizontalSpread, 1, 100, "%.0f");
+
 
 	ImGui::Separator();
 
-	ImGui::InputFloat("Armor Damage Multiplier", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->armorDamageMultiplier, 1, 100, "%.0f");
-	ImGui::InputFloat("Armor Penetration", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->armorPenetration, 1, 100, "%.0f");
-	ImGui::InputFloat("Shatters Armor", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->shattersArmor, 1, 100, "%.0f");
-	ImGui::InputFloat("Armor Damage Type", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->armorDamageType, 1, 100, "%.0f");
-	ImGui::InputFloat("Weak Point Multiplier", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->weakpointMultiplier, 1, 100, "%.0f");
-	ImGui::InputFloat("Stagger Chance", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->staggerChance, 1, 100, "%.0f");
-	ImGui::InputFloat("Stagger Duration", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->staggerDuration, 1, 100, "%.0f");
-	ImGui::InputFloat("Fear Factor", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->fearFactor, 1, 100, "%.0f");
+	ImGui::InputInt("Max Penetrations", &(*pWeapon)->pWeaponFire->maxPenetrations);
+	ImGui::InputFloat("Ricochet Chance", &(*pWeapon)->pWeaponFire->ricochetChance, 1, 100, "%.0f");
+	ImGui::InputFloat("Ricochet Max Range", &(*pWeapon)->pWeaponFire->ricochetMaxRange, 1, 100, "%.0f");
 
 	ImGui::Separator();
 
-	ImGui::InputFloat("Damage", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->damage, 1, 100, "%.0f");
-	ImGui::InputFloat("Minimum Damage Percentage", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->minimumDamagePercentage, 1, 100, "%.0f");
-	ImGui::InputFloat("Radial Damage", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->radialDamage, 1, 100, "%.0f");
-	ImGui::InputFloat("Damage Radius", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->damageRadius, 1, 100, "%.0f");
-	ImGui::InputFloat("Max Damage Radius", &g_player.pGameData->pWeaponData->pCurrentWeapon->pWeaponFire->pDamageComponent->maxDamageRadius, 1, 100, "%.0f");
+	ImGui::Checkbox("Bullets Can Carve", (bool*)&(*pWeapon)->pWeaponFire->bulletsCanCarve);
+	ImGui::InputFloat("Carve Diameter", &(*pWeapon)->pWeaponFire->carveDiameter, 1, 100, "%.0f");
+
+	ImGui::Separator();
+
+	ImGui::InputFloat("Armor Damage Multiplier", &(*pWeapon)->pWeaponFire->pDamageComponent->armorDamageMultiplier, 1, 100, "%.0f");
+	ImGui::InputFloat("Armor Penetration", &(*pWeapon)->pWeaponFire->pDamageComponent->armorPenetration, 1, 100, "%.0f");
+	ImGui::InputFloat("Shatters Armor", &(*pWeapon)->pWeaponFire->pDamageComponent->shattersArmor, 1, 100, "%.0f");
+	ImGui::InputFloat("Armor Damage Type", &(*pWeapon)->pWeaponFire->pDamageComponent->armorDamageType, 1, 100, "%.0f");
+	ImGui::InputFloat("Weak Point Multiplier", &(*pWeapon)->pWeaponFire->pDamageComponent->weakpointMultiplier, 1, 100, "%.0f");
+	ImGui::InputFloat("Stagger Chance", &(*pWeapon)->pWeaponFire->pDamageComponent->staggerChance, 1, 100, "%.0f");
+	ImGui::InputFloat("Stagger Duration", &(*pWeapon)->pWeaponFire->pDamageComponent->staggerDuration, 1, 100, "%.0f");
+	ImGui::InputFloat("Fear Factor", &(*pWeapon)->pWeaponFire->pDamageComponent->fearFactor, 1, 100, "%.0f");
+
+	ImGui::Separator();
+
+	ImGui::InputFloat("Damage", &(*pWeapon)->pWeaponFire->pDamageComponent->damage, 1, 100, "%.0f");
+	ImGui::InputFloat("Minimum Damage Percentage", &(*pWeapon)->pWeaponFire->pDamageComponent->minimumDamagePercentage, 1, 100, "%.0f");
+	ImGui::InputFloat("Radial Damage", &(*pWeapon)->pWeaponFire->pDamageComponent->radialDamage, 1, 100, "%.0f");
+	ImGui::InputFloat("Damage Radius", &(*pWeapon)->pWeaponFire->pDamageComponent->damageRadius, 1, 100, "%.0f");
+	ImGui::InputFloat("Max Damage Radius", &(*pWeapon)->pWeaponFire->pDamageComponent->maxDamageRadius, 1, 100, "%.0f");
+
+
+	ImGui::End();
+}
+
+
+/// <summary>
+/// Shows Weapon Stats Crashes if you pick anything up while open
+/// </summary>
+void TraversalMenu(char* MenuName, TraversalTool** pWeapon)
+{
+	ImGui::Begin(MenuName);
+
+	ImGui::InputInt("Shot Cost", &(*pWeapon)->shotCost);
+	ImGui::InputInt("Max Ammo", &(*pWeapon)->maxAmmo);
+	ImGui::InputInt("Mag Size", &(*pWeapon)->clipSize);
+	ImGui::InputInt("Reserve Ammo", &(*pWeapon)->reserveAmmo);
+	ImGui::InputInt("Ammo", &(*pWeapon)->ammo);
+
+	ImGui::Separator();
+
+	ImGui::InputFloat("Fire Rate", &(*pWeapon)->fireRate, 1, 100, "%.0f");
+	ImGui::Checkbox("Automattic Fire", (bool*)&(*pWeapon)->hasAutomaticFire);
+
+	ImGui::Separator();
+
+	ImGui::InputFloat("Reload Duration", &(*pWeapon)->reloadDuration, 1, 100, "%.0f");
+
+	ImGui::Separator();
+
+	ImGui::InputFloat("Vertical Recoil Min", &(*pWeapon)->recoilPitchMin, 1, 100, "%.0f");
+	ImGui::InputFloat("Vertical Recoil Max", &(*pWeapon)->recoilPitchMax, 1, 100, "%.0f");
+	ImGui::InputFloat("Horizontal Recoil Min", &(*pWeapon)->recoilYawMin, 1, 100, "%.0f");
+	ImGui::InputFloat("Horizontal Recoil Max", &(*pWeapon)->recoilYawMax, 1, 100, "%.0f");
+
+	ImGui::SeparatorText("Zipline Gun");
+
+	ImGui::InputFloat("Zipline Min Distance", &(*pWeapon)->zipLineMinDistance, 1, 100, "%.0f");
+	ImGui::InputFloat("Zipline Max Distance", &(*pWeapon)->zipLineMaxDistance, 1, 100, "%.0f");
+	ImGui::InputFloat("Zipline Min Angle", &(*pWeapon)->zipLineBaseAngle, 1, 100, "%.0f");
+	ImGui::InputFloat("Zipline Max Angle", &(*pWeapon)->zipLineMaxAngle, 1, 100, "%.0f");
 
 
 	ImGui::End();

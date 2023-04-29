@@ -80,6 +80,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -98,6 +99,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\d3d12hook;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\minhook\include;C:\Users\uttervitriol\source\repos\DeepRockGalactic\DeepRockGalacticInternal\imgui</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Display.h" />
+    <ClInclude Include="Game.h" />
     <ClInclude Include="GameData.h" />
     <ClInclude Include="Hack.h" />
     <ClInclude Include="Menus.h" />
@@ -154,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="Hack.cpp" />
     <ClCompile Include="Menus.cpp" />
     <ClCompile Include="Player.cpp" />

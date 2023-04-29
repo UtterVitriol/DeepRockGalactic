@@ -24,61 +24,70 @@ enum WeaponType
 };
 
 
+/// Created with ReClass.NET 1.2 by KN4CK3R
 
-// Created with ReClass.NET 1.2 by KN4CK3R
-
-class GameData
+class Character
 {
 public:
-	char pad_0000[2736]; //0x0000
-	class PlayerData* pPlayerData; //0x0AB0
+	char pad_0000[288]; //0x0000
+	class Weapons* pEquipables; //0x0120
+	char pad_0128[352]; //0x0128
+	class CharacterMovement* pCharacterMovement; //0x0288
+	char pad_0290[180]; //0x0290
+	int32_t jumpMaxCount; //0x0344
+	char pad_0348[1824]; //0x0348
+	class IntoxicationComponent* pIntoxicationComponent; //0x0A68
+	char pad_0A70[64]; //0x0A70
+	class HealthComponent* pHealthComponent; //0x0AB0
 	char pad_0AB8[8]; //0x0AB8
-	class WeaponData* pWeaponData; //0x0AC0
-	char pad_0AC8[568]; //0x0AC8
+	class InventoryComponent* pInventoryComponent; //0x0AC0
+	char pad_0AC8[112]; //0x0AC8
+	float runningSpeed; //0x0B38
+	float runBoost; //0x0B3C
+	char pad_0B40[168]; //0x0B40
+	float carryingMovementSpeedPenalty; //0x0BE8
+	float carryingMaxFallVelocity; //0x0BEC
+	char pad_0BF0[12]; //0x0BF0
+	float carryingThrowMinForce; //0x0BFC
+	float carryingThrowMaxForce; //0x0C00
+	char pad_0C04[223]; //0x0C04
+	int8_t isDanceRange; //0x0CE3
+	int8_t isDancing; //0x0CE4
+	char pad_0CE5[19]; //0x0CE5
+	int32_t danceMove; //0x0CF8
+	char pad_0CFC[4]; //0x0CFC
 }; //Size: 0x0D00
-static_assert(sizeof(GameData) == 0xD00);
+static_assert(sizeof(Character) == 0xD00);
 
-class PlayerData
+class HealthComponent
 {
 public:
-	char pad_0000[32]; //0x0000
-	class Body* pBody; //0x0020
-	char pad_0028[296]; //0x0028
-	float DamageTaken; //0x0150
-	char pad_0154[92]; //0x0154
-	float Health; //0x01B0
-	char pad_01B4[164]; //0x01B4
-	float TimeSinceLastHit; //0x0258
-	char pad_025C[108]; //0x025C
-	float ShieldInversePercentage; //0x02C8
-	char pad_02CC[136]; //0x02CC
-	float ClassHealth; //0x0354
-	float BaseHealth; //0x0358
-	float MaxShield; //0x035C
-	char pad_0360[144]; //0x0360
-}; //Size: 0x03F0
-static_assert(sizeof(PlayerData) == 0x3F0);
+	char pad_0000[432]; //0x0000
+	float characterDamage; //0x01B0
+	char pad_01B4[268]; //0x01B4
+	float maxHealth; //0x02C0
+	float maxArmor; //0x02C4
+	float shieldDamage; //0x02C8
+	char pad_02CC[12]; //0x02CC
+	float healthPerChrystalVolume; //0x02D8
+	char pad_02DC[28]; //0x02DC
+	float shieldRegenDelay; //0x02F8
+	char pad_02FC[300]; //0x02FC
+}; //Size: 0x0428
+static_assert(sizeof(HealthComponent) == 0x428);
 
-class WeaponData
+class InventoryComponent
 {
 public:
-	char pad_0000[208]; //0x0000
-	class Weapon* pCurrentWeapon; //0x00D0
-	char pad_00D8[8]; //0x00D8
-	class Weapon* pPreviousWeapon; //0x00E0
-	char pad_00E8[296]; //0x00E8
-	float flairCooldown; //0x0210
-	int32_t maxFlairs; //0x0214
-	int32_t flairs; //0x0218
-	float flairThrowCooldown; //0x021C
-	char pad_0220[24]; //0x0220
-	class Pickaxe* pPickaxe; //0x0238
-	class Grenade* pGrenade; //0x0240
-	char pad_0248[8]; //0x0248
-	class TerrainScanner* pTerrainScanner; //0x0250
-	char pad_0258[56]; //0x0258
-}; //Size: 0x0290
-static_assert(sizeof(WeaponData) == 0x290);
+	char pad_0000[504]; //0x0000
+	float flareCooldown; //0x01F8
+	float flareProductionTime; //0x01FC
+	char pad_0200[20]; //0x0200
+	int32_t maxFlares; //0x0214
+	int32_t flares; //0x0218
+	char pad_021C[180]; //0x021C
+}; //Size: 0x02D0
+static_assert(sizeof(InventoryComponent) == 0x2D0);
 
 class Pickaxe
 {
@@ -87,15 +96,9 @@ public:
 	float N00000DF8; //0x0108
 	char pad_010C[696]; //0x010C
 	float powerCooldown; //0x03C4
-	char pad_03C8[96]; //0x03C8
-	float N00000E5C; //0x0428
-	float N00002684; //0x042C
-	float N00000E5D; //0x0430
-	char pad_0434[112]; //0x0434
-	float N000026BD; //0x04A4
-	char pad_04A8[240]; //0x04A8
-}; //Size: 0x0598
-static_assert(sizeof(Pickaxe) == 0x598);
+	char pad_03C8[284]; //0x03C8
+}; //Size: 0x04E4
+static_assert(sizeof(Pickaxe) == 0x4E4);
 
 class Grenade
 {
@@ -106,24 +109,13 @@ public:
 }; //Size: 0x0390
 static_assert(sizeof(Grenade) == 0x390);
 
-class TerrainScanner
-{
-public:
-	char pad_0000[136]; //0x0000
-}; //Size: 0x0088
-static_assert(sizeof(TerrainScanner) == 0x88);
-
-class Weapon
+class TraversalTool
 {
 public:
 	char pad_0000[16]; //0x0000
 	class HasWeaponType* pWeaponType; //0x0010
 	uint32_t FNameIndex; //0x0018
-	char pad_001C[680]; //0x001C
-	float minigunHeatCoolDown; //0x02C4
-	char pad_02C8[344]; //0x02C8
-	class WeaponFire* pWeaponFire; //0x0420
-	char pad_0428[512]; //0x0428
+	char pad_001C[1548]; //0x001C
 	int32_t maxAmmo; //0x0628
 	int32_t clipSize; //0x062C
 	int32_t shotCost; //0x0630
@@ -149,17 +141,9 @@ public:
 	float zipLineMinDistance; //0x06D4
 	float zipLineBaseAngle; //0x06D8
 	float zipLineMaxAngle; //0x06DC
-	char pad_06E0[16]; //0x06E0
-	float miniGunSpinUpTime; //0x06F0
-	char pad_06F4[76]; //0x06F4
-	float coilGunChargeRate; //0x0740
-	char pad_0744[4]; //0x0744
-	float coilGunCharge; //0x0748
-	char pad_074C[4]; //0x074C
-	int32_t CoilGunSubtractionRate; //0x0750
-	char pad_0754[68]; //0x0754
-}; //Size: 0x0798
-static_assert(sizeof(Weapon) == 0x798);
+	char pad_06E0[280]; //0x06E0
+}; //Size: 0x07F8
+static_assert(sizeof(TraversalTool) == 0x7F8);
 
 class HasWeaponType
 {
@@ -170,17 +154,7 @@ public:
 }; //Size: 0x011E
 static_assert(sizeof(HasWeaponType) == 0x11E);
 
-class Body
-{
-public:
-	char pad_0000[648]; //0x0000
-	class Movement* pMovement; //0x0288
-	char pad_0290[180]; //0x0290
-	int32_t jumpNumber; //0x0344
-}; //Size: 0x0348
-static_assert(sizeof(Body) == 0x348);
-
-class Movement
+class CharacterMovement
 {
 public:
 	char pad_0000[176]; //0x0000
@@ -188,26 +162,20 @@ public:
 	char pad_00B8[12]; //0x00B8
 	Vec3 velocity; //0x00C4
 	char pad_00D0[128]; //0x00D0
-	float gravit; //0x0150
-	float stepHeight; //0x0154
+	float gravityScale; //0x0150
+	float maxStepHeight; //0x0154
 	float jumpHeight; //0x0158
-	char pad_015C[48]; //0x015C
+	char pad_015C[12]; //0x015C
+	int8_t movementMode; //0x0168
+	char pad_0169[3]; //0x0169
+	float groundFriction; //0x016C
+	char pad_0170[28]; //0x0170
 	float walkSpeed; //0x018C
-	char pad_0190[2436]; //0x0190
-	float speedMultiplier; //0x0B14
-	char pad_0B18[8]; //0x0B18
-	class RunSpeed* pRunSpeed; //0x0B20
-}; //Size: 0x0B28
-static_assert(sizeof(Movement) == 0xB28);
-
-class RunSpeed
-{
-public:
-	char pad_0000[2872]; //0x0000
-	float runSpeed; //0x0B38
-	char pad_0B3C[332]; //0x0B3C
-}; //Size: 0x0C88
-static_assert(sizeof(RunSpeed) == 0xC88);
+	char pad_0190[8]; //0x0190
+	float flySpeed; //0x0198
+	char pad_019C[4]; //0x019C
+}; //Size: 0x01A0
+static_assert(sizeof(CharacterMovement) == 0x1A0);
 
 class Position
 {
@@ -284,24 +252,128 @@ public:
 }; //Size: 0x01C8
 static_assert(sizeof(DamageComponent) == 0x1C8);
 
+class Weapons
+{
+public:
+	class Pickaxe* pPickaxe; //0x0000
+	class Weapon* pPrimaryGun; //0x0008
+	class Weapon* pSecondayGun; //0x0010
+	class TraversalTool* pTraversalTool; //0x0018
+	class SupportTool* pSupportTool; //0x0020
+	class Grenade* pGrenade; //0x0028
+	class LaserPointer* pLaserPointer; //0x0030
+	class TerrainScanner* pTerrainScanner; //0x0038
+	class SupplyDrop* pSupplyDrop; //0x0040
+	char pad_0048[64]; //0x0048
+}; //Size: 0x0088
+static_assert(sizeof(Weapons) == 0x88);
+
+class SupportTool
+{
+public:
+	char pad_0000[136]; //0x0000
+}; //Size: 0x0088
+static_assert(sizeof(SupportTool) == 0x88);
+
+class LaserPointer
+{
+public:
+	char pad_0000[136]; //0x0000
+}; //Size: 0x0088
+static_assert(sizeof(LaserPointer) == 0x88);
+
+class TerrainScanner
+{
+public:
+	char pad_0000[136]; //0x0000
+}; //Size: 0x0088
+static_assert(sizeof(TerrainScanner) == 0x88);
+
+class SupplyDrop
+{
+public:
+	char pad_0000[136]; //0x0000
+}; //Size: 0x0088
+static_assert(sizeof(SupplyDrop) == 0x88);
+
+class IntoxicationComponent
+{
+public:
+	char pad_0000[136]; //0x0000
+}; //Size: 0x0088
+static_assert(sizeof(IntoxicationComponent) == 0x88);
+
+class Weapon
+{
+public:
+	char pad_0000[16]; //0x0000
+	class HasWeaponType* pWeaponType; //0x0010
+	int32_t FNameIndex; //0x0018
+	char pad_001C[1028]; //0x001C
+	class WeaponFire* pWeaponFire; //0x0420
+	char pad_0428[512]; //0x0428
+	int32_t maxAmmo; //0x0628
+	int32_t clipSize; //0x062C
+	int32_t shotCost; //0x0630
+	float fireRate; //0x0634
+	float burstCount; //0x0638
+	float burstCycleTime; //0x063C
+	float reloadDuration; //0x0640
+	int32_t reserveAmmo; //0x0644
+	int32_t ammo; //0x0648
+	char pad_064C[52]; //0x064C
+	float recoilRollMin; //0x0680
+	float recoilRollMax; //0x0684
+	float recoilPitchMin; //0x0688
+	float recoilPitchMax; //0x068C
+	float recoilYawMin; //0x0690
+	float recoilYawMax; //0x0694
+	char pad_0698[16]; //0x0698
+	int8_t hasAutomaticFire; //0x06A8
+	char pad_06A9[39]; //0x06A9
+	float startingFireRate; //0x06D0
+	float maxFireRate; //0x06D4
+	char pad_06D8[272]; //0x06D8
+	float splashDamage; //0x07E8
+	float splashRadius; //0x07EC
+	char pad_07F0[152]; //0x07F0
+}; //Size: 0x0888
+static_assert(sizeof(Weapon) == 0x888);
+
+class N00006039
+{
+public:
+	char pad_0000[136]; //0x0000
+}; //Size: 0x0088
+static_assert(sizeof(N00006039) == 0x88);
+
+class N000060DC
+{
+public:
+	char pad_0000[136]; //0x0000
+}; //Size: 0x0088
+static_assert(sizeof(N000060DC) == 0x88);
 
 ///////////////////////////////////////////////////////////
 
-// 
 // Created with ReClass.NET 1.2 by KN4CK3R
 
-class Player
+class FSDSavedGame
 {
 public:
 	char pad_0000[792]; //0x0000
 	class Season* PtrSeason; //0x0318
-	char pad_0320[504]; //0x0320
+	char pad_0320[176]; //0x0320
+	int32_t perkPoints; //0x03D0
+	char pad_03D4[324]; //0x03D4
 	int32_t Credits; //0x0518
-	char pad_051C[924]; //0x051C
+	char pad_051C[4]; //0x051C
+	int32_t forgingXP; //0x0520
+	char pad_0524[916]; //0x0524
 	class Resources* Resources; //0x08B8
 	char pad_08C0[3960]; //0x08C0
 }; //Size: 0x1838
-static_assert(sizeof(Player) == 0x1838);
+static_assert(sizeof(FSDSavedGame) == 0x1838);
 
 class Resources
 {
