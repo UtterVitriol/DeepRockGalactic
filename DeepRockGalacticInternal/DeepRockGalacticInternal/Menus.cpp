@@ -1,5 +1,4 @@
 #include "Menus.h"
-#include "Player.h"
 #include "Game.h"
 #include "imgui.h"
 
@@ -60,12 +59,36 @@ void MyMenu()
 		{
 			if (ImGui::BeginTable("split", 3))
 			{
-				ImGui::TableNextColumn(); ImGui::Checkbox("Good Weapons", &g_Game.bGoodWeapons);
-				ImGui::TableNextColumn(); ImGui::Checkbox("God Weapons", &g_Game.bGodWeapons);
-				ImGui::TableNextColumn(); ImGui::Checkbox("Rapid Fire", &g_Game.bRapidFire);
-				ImGui::TableNextColumn(); ImGui::Checkbox("Steroids", &g_Game.bSteroids);
-				ImGui::TableNextColumn(); ImGui::Checkbox("Hook Minerals", &g_Game.bHookMinerals);
-				ImGui::TableNextColumn(); ImGui::Checkbox("Hook Mineral Objective", &g_Game.bHookObjective);
+				//ImGui::TableNextColumn(); ImGui::Checkbox("Good Weapons", &g_Game.bGoodWeapons);
+				//ImGui::TableNextColumn(); ImGui::Checkbox("God Weapons", &g_Game.bGodWeapons);
+				//ImGui::TableNextColumn(); ImGui::Checkbox("Rapid Fire", &g_Game.bRapidFire);
+				//ImGui::TableNextColumn(); ImGui::Checkbox("Steroids", &g_Game.bSteroids);
+
+
+				ImGui::TableNextColumn();
+				if (ImGui::Checkbox("Infinite Health", &g_Game.bHookHealth))
+				{
+					g_Game.HookHealth();
+				}
+				
+				ImGui::TableNextColumn();
+				if (ImGui::Checkbox("Infinite Armor", &g_Game.bHookArmor))
+				{
+					g_Game.HookArmor();
+				}
+
+
+				ImGui::TableNextColumn(); 
+				if (ImGui::Checkbox("Hook Minerals", &g_Game.bHookMinerals))
+				{
+					g_Game.HookMinerals();
+				}
+
+				ImGui::TableNextColumn(); 
+				if (ImGui::Checkbox("Hook Mineral Objective", &g_Game.bHookObjective))
+				{
+					g_Game.HookObjective();
+				}
 				ImGui::EndTable();
 			}
 		}

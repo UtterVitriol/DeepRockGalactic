@@ -31,7 +31,8 @@ class Character
 public:
 	char pad_0000[288]; //0x0000
 	class Weapons* pEquipables; //0x0120
-	char pad_0128[352]; //0x0128
+	int32_t numEquipables; //0x0128
+	char pad_012C[348]; //0x012C
 	class CharacterMovement* pCharacterMovement; //0x0288
 	char pad_0290[180]; //0x0290
 	int32_t jumpMaxCount; //0x0344

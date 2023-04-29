@@ -153,14 +153,12 @@
     <ClInclude Include="GameData.h" />
     <ClInclude Include="Hack.h" />
     <ClInclude Include="Menus.h" />
-    <ClInclude Include="Player.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Hack.cpp" />
     <ClCompile Include="Menus.cpp" />
-    <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <NASM Include="HealthHook.asm">

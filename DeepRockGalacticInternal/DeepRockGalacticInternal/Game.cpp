@@ -20,17 +20,29 @@ void MyGame::Start()
 	// Player character in game.
 	pCharacter = (Character*)Hack::FindDMAAddy(m_ModuleBase + m_CharacterFirstOffset, { 0x0, 0x20, 0x0 });
 
+	if (pCharacter->numEquipables >= 2)
+	{
+		pPrimary = pCharacter->pEquipables->pPrimaryGun;
+		GetFName(pPrimary->FNameIndex, m_PrimaryName);
+	}
 
-	pPrimary = pCharacter->pEquipables->pPrimaryGun;
-	GetFName(pPrimary->FNameIndex, m_PrimaryName);
+	if (pCharacter->numEquipables >= 3)
+	{
+		pSecondary = pCharacter->pEquipables->pSecondayGun;
+		GetFName(pSecondary->FNameIndex, m_SecondaryName);
+	}
 
-	pSecondary = pCharacter->pEquipables->pSecondayGun;
-	GetFName(pSecondary->FNameIndex, m_SecondaryName);
+	if (pCharacter->numEquipables >= 2)
+	{
+		pTraversal = pCharacter->pEquipables->pTraversalTool;
+		GetFName(pTraversal->FNameIndex, m_TraversalName);
+	}
 
-	pTraversal = pCharacter->pEquipables->pTraversalTool;
-	GetFName(pTraversal->FNameIndex, m_TraversalName);
+	if (&pCharacter->pInventoryComponent)
+	{
+		pFlairs = pCharacter->pInventoryComponent;
+	}
 
-	pFlairs = pCharacter->pInventoryComponent;
 }
 
 void MyGame::ValidateCharacter()
@@ -52,10 +64,25 @@ void MyGame::ValidateCharacter()
 
 		Start();
 		pLast = pCharacter;
-
-
+		
 	}
+
 	return;
+}
+
+void MyGame::UpdateValues()
+{
+
+	ValidateCharacter();
+
+	if (!pCharacter)
+	{
+		pLast = NULL;
+	}
+
+	return;
+
+
 }
 
 void MyGame::ExitMission()
@@ -79,9 +106,9 @@ void MyGame::ExitMission()
 
 void SetName(char* toSet, char* str)
 {
-	memset(toSet, 0, 1024);
+	memset(toSet, 0, MAX_FNAME_LEN);
 
-	for (int i = 0; i < 1024; i++)
+	for (int i = 0; i < MAX_FNAME_LEN; i++)
 	{
 		if (str[i] > 0 && str[i] < 255)
 		{
@@ -149,19 +176,11 @@ void MyGame::HookMinerals()
 {
 	if (bHookMinerals)
 	{
-		if (bHookedMinerals)
-		{
-			return;
-		}
-
 		Hack::Detour((BYTE*)m_ModuleBase + m_HookMineralsOffset, mineral_hook, 16);
-		bHookedMinerals = true;
-
 	}
 	else {
-		Hack::Patch((BYTE*)(m_ModuleBase + m_HookMineralsOffset), 
+		Hack::Patch((BYTE*)(m_ModuleBase + m_HookMineralsOffset),
 			(BYTE*)"\xF3\x0F\x11\x49\x60\xF3\x0F\x11\x4C\x24\x28\xF3\x0F\x11\x41\x68", 16);
-		bHookedMinerals = false;
 	}
 }
 
@@ -170,20 +189,18 @@ void MyGame::HookObjective()
 	if (bHookObjective)
 	{
 		Hack::Detour((BYTE*)m_ModuleBase + m_HookObjectiveOffset, objective_hook, 16);
-		bHookedObjective = true;
 	}
 	else
 	{
 		Hack::Patch((BYTE*)(m_ModuleBase + m_HookObjectiveOffset),
 			(BYTE*)"\xF3\x0F\x5D\x91\x88\x01\x00\x00\xF3\x0F\x11\x91\x8C\x01\x00\x00", 16);
-		bHookedObjective = false;
 	}
 }
 
 
 void MyGame::HookHealth()
 {
-	if (1)
+	if (bHookHealth)
 	{
 		Hack::Detour((BYTE*)m_ModuleBase + m_HookHealthOffset, health_hook, 17);
 	}
@@ -194,9 +211,9 @@ void MyGame::HookHealth()
 	}
 }
 
-void MyGame::HookShield()
+void MyGame::HookArmor()
 {
-	if (1) {
+	if (bHookArmor) {
 		Hack::Nop((BYTE*)(m_ModuleBase + m_ShieldDamageOffset), 8);
 	}
 	else {

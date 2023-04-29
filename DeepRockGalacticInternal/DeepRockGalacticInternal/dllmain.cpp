@@ -19,7 +19,6 @@ MyGame g_Game;
 
 
 DWORD WINAPI HackThread(HMODULE hModule) {
-
 	g_Game.Start();
 
 	MyHook.MyMenu = MyMenu;
@@ -40,7 +39,7 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 			break;
 		}
 
-		//g_Game.UpdateValues();
+		g_Game.UpdateValues();
 
 		Sleep(5);
 	}
