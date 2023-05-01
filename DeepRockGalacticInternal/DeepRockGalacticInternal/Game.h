@@ -36,13 +36,19 @@ public:
 
 	// Pointers.
 	FSDSavedGame* pSavedGame = NULL;
+
 	Weapon* pPrimary = NULL;
+	Weapon m_Primary = { 0 };
+	WeaponFire m_WPrimary = { 0 };
 	char m_PrimaryName[MAX_FNAME_LEN];
 
 	Weapon* pSecondary = NULL;
+	Weapon m_Secondary = { 0 };
+	WeaponFire m_WSecondary = { 0 };
 	char m_SecondaryName[MAX_FNAME_LEN];
 
 	TraversalTool* pTraversal = NULL;
+	TraversalTool m_Traversal = { 0 };
 	char m_TraversalName[MAX_FNAME_LEN];
 
 	Weapon* pSupport = NULL;
@@ -50,7 +56,6 @@ public:
 
 	// State stuff.
 	bool bIsOnMission = false;
-
 	bool bGoodWeapons = false;
 	bool bGodWeapons = false;
 	bool bRapidFire = false;
@@ -60,10 +65,12 @@ public:
 	bool bHookObjective = false;
 	bool bHookHealth = false;
 	bool bHookArmor = false;
-
-
+	bool bNoRecoil = false;
+	bool bNoBulletSpread = false;
 	bool bHasSavedTeleportLocation = false;
-	Vec3 m_TelePortLocation = { 0 };
+
+	// Coordinates to teleport to.
+	Vec3 m_TeleportLocation = { 0 };
 
 
 	// Setup pointers.
@@ -95,6 +102,10 @@ public:
 	void HookObjective();
 	void HookHealth();
 	void HookArmor();
+
+	// Basic hack stuff.
+	void NoRecoil();
+	void NoBulletSpread();
 
 };
 

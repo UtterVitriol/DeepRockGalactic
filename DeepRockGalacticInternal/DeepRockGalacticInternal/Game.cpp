@@ -20,21 +20,31 @@ void MyGame::Start()
 	// Player character in game.
 	pCharacter = (Character*)Hack::FindDMAAddy(m_ModuleBase + m_CharacterFirstOffset, { 0x0, 0x20, 0x0 });
 
+	// Equipables is actuall child objects for our Character class.
+	// But, these child objects are our equipable items.
+	// e.g. Equipables[0] = Pickaxe , [1] = Primary weapon, etc.
+	// When we are not in a mission, only our pickaxe is loaded,
+	// and our number of child objects is only 1.
 	if (pCharacter->numEquipables >= 2)
 	{
 		pPrimary = pCharacter->pEquipables->pPrimaryGun;
+		memcpy(&m_Primary, pCharacter->pEquipables->pPrimaryGun, sizeof(m_Primary));
+		memcpy(&m_WPrimary, pCharacter->pEquipables->pPrimaryGun->pWeaponFire, sizeof(m_Primary));
 		GetFName(pPrimary->FNameIndex, m_PrimaryName);
 	}
 
 	if (pCharacter->numEquipables >= 3)
 	{
-		pSecondary = pCharacter->pEquipables->pSecondayGun;
+		pSecondary = pCharacter->pEquipables->pSecondaryGun;
+		memcpy(&m_Secondary, pCharacter->pEquipables->pSecondaryGun, sizeof(m_Secondary));
+		memcpy(&m_WSecondary, pCharacter->pEquipables->pSecondaryGun->pWeaponFire, sizeof(m_Primary));
 		GetFName(pSecondary->FNameIndex, m_SecondaryName);
 	}
 
-	if (pCharacter->numEquipables >= 2)
+	if (pCharacter->numEquipables >= 4)
 	{
 		pTraversal = pCharacter->pEquipables->pTraversalTool;
+		memcpy(&m_Traversal, pCharacter->pEquipables->pTraversalTool, sizeof(m_Traversal));
 		GetFName(pTraversal->FNameIndex, m_TraversalName);
 	}
 
@@ -47,6 +57,8 @@ void MyGame::Start()
 
 void MyGame::ValidateCharacter()
 {
+	// When we move between the base and a mission,
+	// our charact gets reloaded.
 	pCharacter = (Character*)Hack::FindDMAAddy(m_ModuleBase + m_CharacterFirstOffset, { 0x0, 0x20, 0x0 });
 
 	if (pCharacter != pLast)
@@ -70,6 +82,7 @@ void MyGame::ValidateCharacter()
 
 void MyGame::UpdateValues()
 {
+	// This is our working function for our DLL.
 
 	ValidateCharacter();
 
@@ -83,7 +96,7 @@ void MyGame::UpdateValues()
 
 void MyGame::ExitMission()
 {
-	m_TelePortLocation = { 0 };
+	m_TeleportLocation = { 0 };
 
 	bGoodWeapons = false;
 	bGodWeapons = false;
@@ -153,16 +166,16 @@ char* MyGame::GetFName(uint32_t index, char* destination)
 
 void MyGame::SaveLocation()
 {
-	m_TelePortLocation.x = pCharacter->pCharacterMovement->pPosition->position.x;
-	m_TelePortLocation.y = pCharacter->pCharacterMovement->pPosition->position.y;
-	m_TelePortLocation.z = pCharacter->pCharacterMovement->pPosition->position.z;
+	m_TeleportLocation.x = pCharacter->pCharacterMovement->pPosition->position.x;
+	m_TeleportLocation.y = pCharacter->pCharacterMovement->pPosition->position.y;
+	m_TeleportLocation.z = pCharacter->pCharacterMovement->pPosition->position.z;
 }
 
 void MyGame::TeleportLocation()
 {
-	pCharacter->pCharacterMovement->pPosition->position.x = m_TelePortLocation.x;
-	pCharacter->pCharacterMovement->pPosition->position.y = m_TelePortLocation.y;
-	pCharacter->pCharacterMovement->pPosition->position.z = m_TelePortLocation.z;
+	pCharacter->pCharacterMovement->pPosition->position.x = m_TeleportLocation.x;
+	pCharacter->pCharacterMovement->pPosition->position.y = m_TeleportLocation.y;
+	pCharacter->pCharacterMovement->pPosition->position.z = m_TeleportLocation.z;
 }
 
 void MyGame::HookMinerals()
@@ -211,5 +224,71 @@ void MyGame::HookArmor()
 	else {
 		Hack::Patch((BYTE*)(m_ModuleBase + m_ShieldDamageOffset),
 			(BYTE*)"\xF3\x0F\x11\x91\xC8\x02\x00\x00", 8);
+	}
+}
+
+void MyGame::NoRecoil()
+{
+	if (bNoRecoil)
+	{
+		pPrimary->recoilPitchMax = 0;
+		pPrimary->recoilPitchMin = 0;
+		pPrimary->recoilYawMax = 0;
+		pPrimary->recoilYawMin = 0;
+
+		pSecondary->recoilPitchMax = 0;
+		pSecondary->recoilPitchMin = 0;
+		pSecondary->recoilYawMax = 0;
+		pSecondary->recoilYawMin = 0;
+
+		pTraversal->recoilPitchMax = 0;
+		pTraversal->recoilPitchMin = 0;
+		pTraversal->recoilYawMax = 0;
+		pTraversal->recoilYawMin = 0;
+	}
+	else
+	{
+		pPrimary->recoilPitchMax = m_Primary.recoilPitchMax;
+		pPrimary->recoilPitchMin = m_Primary.recoilPitchMin;
+		pPrimary->recoilYawMax = m_Primary.recoilYawMax;
+		pPrimary->recoilYawMin = m_Primary.recoilYawMin;
+
+		pSecondary->recoilPitchMax = m_Secondary.recoilPitchMax;
+		pSecondary->recoilPitchMin = m_Secondary.recoilPitchMin;
+		pSecondary->recoilYawMax = m_Secondary.recoilYawMax;
+		pSecondary->recoilYawMin = m_Secondary.recoilYawMin;
+
+		pTraversal->recoilPitchMax = m_Traversal.recoilPitchMax;
+		pTraversal->recoilPitchMin = m_Traversal.recoilPitchMin;
+		pTraversal->recoilYawMax = m_Traversal.recoilYawMax;
+		pTraversal->recoilYawMin = m_Traversal.recoilYawMin;
+	}
+}
+
+void MyGame::NoBulletSpread()
+{
+	if (bNoBulletSpread)
+	{
+		pPrimary->pWeaponFire->maxSpread = 0;
+		pPrimary->pWeaponFire->minSpead = 0;
+		pPrimary->pWeaponFire->maxVerticalSpread = 0;
+		pPrimary->pWeaponFire->maxHorizontalSpread = 0;
+
+		pSecondary->pWeaponFire->maxSpread = 0;
+		pSecondary->pWeaponFire->minSpead = 0;
+		pSecondary->pWeaponFire->maxVerticalSpread = 0;
+		pSecondary->pWeaponFire->maxHorizontalSpread = 0;
+	}
+	else
+	{
+		pPrimary->pWeaponFire->maxSpread = m_WPrimary.maxSpread;
+		pPrimary->pWeaponFire->minSpead = m_WPrimary.minSpead;
+		pPrimary->pWeaponFire->maxVerticalSpread = m_WPrimary.maxVerticalSpread;
+		pPrimary->pWeaponFire->maxHorizontalSpread = m_WPrimary.maxHorizontalSpread;
+
+		pSecondary->pWeaponFire->maxSpread = m_WSecondary.maxSpread;
+		pSecondary->pWeaponFire->minSpead = m_WSecondary.minSpead;
+		pSecondary->pWeaponFire->maxVerticalSpread = m_WSecondary.maxVerticalSpread;
+		pSecondary->pWeaponFire->maxHorizontalSpread = m_WSecondary.maxHorizontalSpread;
 	}
 }

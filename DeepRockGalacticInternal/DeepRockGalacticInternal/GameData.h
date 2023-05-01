@@ -258,7 +258,7 @@ class Weapons
 public:
 	class Pickaxe* pPickaxe; //0x0000
 	class Weapon* pPrimaryGun; //0x0008
-	class Weapon* pSecondayGun; //0x0010
+	class Weapon* pSecondaryGun; //0x0010
 	class TraversalTool* pTraversalTool; //0x0018
 	class SupportTool* pSupportTool; //0x0020
 	class Grenade* pGrenade; //0x0028

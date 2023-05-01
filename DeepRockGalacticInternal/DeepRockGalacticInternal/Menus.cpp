@@ -24,7 +24,6 @@ void MyMenu()
 	static bool bShowPrimaryWeapon = false;
 	static bool bShowSecondaryWeapon = false;
 	static bool bShowTraversalTool = false;
-	static bool bShowMenu = false;
 
 	if (!ImGui::Begin("Tingle's Internal Trainer", (bool*)0, ImGuiWindowFlags_MenuBar))
 	{
@@ -44,7 +43,10 @@ void MyMenu()
 		ImGui::EndMenuBar();
 	}
 
-	ImGui::Text("Press END to Eject :)");             // Display some text (you can use a format strings too)
+	ImGui::Text("Press END to Eject :)");
+	ImGui::SeparatorText("Disclaimer");
+	ImGui::TextWrapped("Making more than 1,000 voxel changes might crash the game. E.G. You set your autocannon fire rate to 100 and shoot for a while.");
+	ImGui::Separator();
 
 	if (!g_Game.bIsOnMission)
 	{
@@ -56,11 +58,6 @@ void MyMenu()
 		{
 			if (ImGui::BeginTable("split", 3))
 			{
-				//ImGui::TableNextColumn(); ImGui::Checkbox("Good Weapons", &g_Game.bGoodWeapons);
-				//ImGui::TableNextColumn(); ImGui::Checkbox("God Weapons", &g_Game.bGodWeapons);
-				//ImGui::TableNextColumn(); ImGui::Checkbox("Rapid Fire", &g_Game.bRapidFire);
-				//ImGui::TableNextColumn(); ImGui::Checkbox("Steroids", &g_Game.bSteroids);
-
 				ImGui::TableNextColumn();
 				if (ImGui::Checkbox("Infinite Health", &g_Game.bHookHealth))
 				{
@@ -71,6 +68,18 @@ void MyMenu()
 				if (ImGui::Checkbox("Infinite Armor", &g_Game.bHookArmor))
 				{
 					g_Game.HookArmor();
+				}
+
+				ImGui::TableNextColumn();
+				if (ImGui::Checkbox("No Recoil", &g_Game.bNoRecoil))
+				{
+					g_Game.NoRecoil();
+				}
+
+				ImGui::TableNextColumn();
+				if (ImGui::Checkbox("No Bullet Spread", &g_Game.bNoBulletSpread))
+				{
+					g_Game.NoBulletSpread();
 				}
 
 				ImGui::TableNextColumn(); 
@@ -110,11 +119,11 @@ void MyMenu()
 	}
 	
 	if (ImGui::CollapsingHeader("Settings")) {
-		//if (ImGui::DragFloat("window scale", &window_scale, 0.005f, MIN_SCALE, MAX_SCALE, "%.2f", ImGuiSliderFlags_AlwaysClamp)) // Scale only this window
-		//	ImGui::SetWindowFontScale(window_scale);
 		ImGui::DragFloat("global scale", &io.FontGlobalScale, 0.005f, MIN_SCALE, MAX_SCALE, "%.2f", ImGuiSliderFlags_AlwaysClamp); // Scale everything
 	}
+
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
 	ImGui::End();
 
 	if (bShowAppLog)
@@ -138,7 +147,7 @@ void MyMenu()
 
 	if (bShowSecondaryWeapon && g_Game.bIsOnMission)
 	{
-		WeaponMenu(g_Game.m_SecondaryName, & g_Game.pCharacter->pEquipables->pSecondayGun);
+		WeaponMenu(g_Game.m_SecondaryName, & g_Game.pCharacter->pEquipables->pSecondaryGun);
 	}
 
 	if (bShowTraversalTool && g_Game.bIsOnMission)
@@ -203,7 +212,8 @@ void PlayerMenu()
 {
 	const char* DanceMoves[] = { "Dance Move 1", "Dance Move 2", "Dance Move 3", "Dance Move 4", "Dance Move 5",
 		"Dance Move 6", "Dance Move 7", "Dance Move 8", "Dance Move 9", "Dance Move 10", "Dance Move 11",
-		"Dance Move 12", "Dance Move 13", "Dance Move 14", "Dance Move 15", "Dance Move 16", "Dance Move 17", "Dance Move 18" };
+		"Dance Move 12", "Dance Move 13", "Dance Move 14", "Dance Move 15", "Dance Move 16", "Dance Move 17",
+		"Dance Move 18" };
 
 	ImGui::Begin("Player Data");
 
@@ -220,6 +230,11 @@ void PlayerMenu()
 	ImGui::InputFloat("Carrying Throw Min Force", &g_Game.pCharacter->carryingThrowMinForce, 1, 100, "%.0f");
 	ImGui::InputFloat("Carrying Throw Max Force", &g_Game.pCharacter->carryingThrowMaxForce, 1, 100, "%.0f");
 	ImGui::InputFloat("Gravity Scale", &g_Game.pCharacter->pCharacterMovement->gravityScale, .01, .1, "%.3f");
+
+	ImGui::SeparatorText("Flairs");
+	ImGui::InputInt("Flares", &g_Game.pFlairs->flares);
+	ImGui::InputFloat("Flare Production Time", &g_Game.pFlairs->flareProductionTime, 1, 100, "%.3f");
+	ImGui::InputFloat("Flare Cooldown", &g_Game.pFlairs->flareCooldown, 1, 100, "%.3f");
 	
 	ImGui::SeparatorText("Dancing");
 
@@ -249,7 +264,7 @@ void PlayerMenu()
 		g_Game.TeleportLocation();
 	}
 
-	if (ImGui::InputFloat3("Saved Position", (float*)&g_Game.m_TelePortLocation, "%.0f", ImGuiInputTextFlags_ReadOnly))
+	if (ImGui::InputFloat3("Saved Position", (float*)&g_Game.m_TeleportLocation, "%.0f", ImGuiInputTextFlags_ReadOnly))
 	{
 		g_Game.log.AddLog("Changed");
 	}
