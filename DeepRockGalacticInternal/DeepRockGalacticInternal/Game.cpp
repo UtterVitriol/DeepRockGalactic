@@ -1,6 +1,5 @@
 #include "Game.h"
 
-
 extern "C" void mineral_hook();
 extern "C" void health_hook();
 extern "C" void objective_hook();
@@ -15,10 +14,11 @@ void MyGame::Start()
 	m_FNameTable = (m_ModuleBase + m_FNameTableOffset);
 
 	// Actually SavedGame.
-	pSavedGame = (FSDSavedGame*)Hack::FindDMAAddy(m_ModuleBase + m_ResourcesFirstOffset, { 0x8, 0x5F8, 0x0 });
+	pSavedGame = (FSDSavedGame*)Hack::FindDMAAddy(m_ModuleBase + m_SavedGameFirstOffset, { 0x0 });
 
 	// Player character in game.
-	pCharacter = (Character*)Hack::FindDMAAddy(m_ModuleBase + m_CharacterFirstOffset, { 0x0, 0x20, 0x0 });
+	pLocalPlayer = (LocalPlayer*)Hack::FindDMAAddy(m_ModuleBase + m_LocalPlayerFirstOffset, { 0x0 });
+	pCharacter = pLocalPlayer->pPlayerController->pCharacter;
 
 	// Equipables is actuall child objects for our Character class.
 	// But, these child objects are our equipable items.
@@ -58,13 +58,13 @@ void MyGame::Start()
 void MyGame::ValidateCharacter()
 {
 	// When we move between the base and a mission,
-	// our charact gets reloaded.
-	pCharacter = (Character*)Hack::FindDMAAddy(m_ModuleBase + m_CharacterFirstOffset, { 0x0, 0x20, 0x0 });
+	// our character gets reloaded.
+	//pCharacter = (Character*)Hack::FindDMAAddy(m_ModuleBase + m_CharacterFirstOffset, { 0x0, 0x20, 0x0 });
+	pCharacter = pLocalPlayer->pPlayerController->pCharacter;
 
 	if (pCharacter != pLast)
 	{
 		bIsOnMission = false;
-		pCharacter = NULL;
 		ExitMission();
 
 		while (!bIsOnMission)

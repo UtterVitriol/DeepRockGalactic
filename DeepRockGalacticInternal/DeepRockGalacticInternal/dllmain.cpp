@@ -12,11 +12,14 @@ D3D12Hook MyHook;
 MyGame g_Game;
 
 DWORD WINAPI HackThread(HMODULE hModule) {
+
+
+	HWND hWnd = NULL;
 	g_Game.Start();
+
 
 	MyHook.MyMenu = MyMenu;
 
-	HWND hWnd = NULL;
 	
 	if (!MyHook.d3d12InitHook())
 	{

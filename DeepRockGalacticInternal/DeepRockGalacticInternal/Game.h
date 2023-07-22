@@ -14,9 +14,12 @@ public:
 	struct AppLog log;
 	uintptr_t m_ModuleBase = 0;
 
+	LocalPlayer* pLocalPlayer = NULL;
+	uintptr_t m_LocalPlayerFirstOffset = 0x0640ABC0;
+
 	// FnameTable sutff.
 	uintptr_t m_FNameTable = NULL;
-	uint64_t m_FNameTableOffset = 0x606BC40;
+	uint64_t m_FNameTableOffset = 0x629FC80;
 
 	// Resources stuff.
 	uint64_t m_ResourcesFirstOffset = 0x061E9F80;
@@ -36,6 +39,7 @@ public:
 
 	// Pointers.
 	FSDSavedGame* pSavedGame = NULL;
+	uintptr_t m_SavedGameFirstOffset = 0x05F91990;
 
 	Weapon* pPrimary = NULL;
 	Weapon m_Primary = { 0 };
