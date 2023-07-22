@@ -14,7 +14,7 @@ void MyGame::Start()
 	m_FNameTable = (m_ModuleBase + m_FNameTableOffset);
 
 	// Actually SavedGame.
-	pSavedGame = (FSDSavedGame*)Hack::FindDMAAddy(m_ModuleBase + m_SavedGameFirstOffset, { 0x0 });
+	pSavedGame = (FSDSavedGame*)Hack::FindDMAAddy(m_ModuleBase + m_SavedGameFirstOffset, { 0x8, 0x5F8, 0x0 });
 
 	// Player character in game.
 	pLocalPlayer = (LocalPlayer*)Hack::FindDMAAddy(m_ModuleBase + m_LocalPlayerFirstOffset, { 0x0 });
@@ -118,7 +118,7 @@ void SetName(char* toSet, char* str)
 
 	for (int i = 0; i < MAX_FNAME_LEN; i++)
 	{
-		if (str[i] > 0 && str[i] < 255)
+		if (isascii(str[i]) && str[i] > 32)
 		{
 			toSet[i] = str[i];
 		}

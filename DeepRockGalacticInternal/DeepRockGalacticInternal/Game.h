@@ -28,8 +28,6 @@ public:
 	// Character stuff.
 	Character* pCharacter = NULL;
 	Character* pLast = NULL;
-	uint64_t m_CharacterFirstOffset = 0x61E2200;
-	std::vector<unsigned int> m_CharacterOffsets = { 0x0, 0x20, 0x0 };
 
 	// Hook stuff.
 	uintptr_t m_HookMineralsOffset = 0x142B590;
@@ -39,7 +37,7 @@ public:
 
 	// Pointers.
 	FSDSavedGame* pSavedGame = NULL;
-	uintptr_t m_SavedGameFirstOffset = 0x05F91990;
+	uintptr_t m_SavedGameFirstOffset = 0x0641DFD0;
 
 	Weapon* pPrimary = NULL;
 	Weapon m_Primary = { 0 };

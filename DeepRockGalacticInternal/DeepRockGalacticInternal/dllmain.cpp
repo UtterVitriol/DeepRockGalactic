@@ -30,6 +30,8 @@ DWORD WINAPI HackThread(HMODULE hModule) {
 
 		if (GetAsyncKeyState(VK_END) & 1)
 		{
+			MyHook.bShutDown = true;
+			Sleep(500);
 			break;
 		}
 

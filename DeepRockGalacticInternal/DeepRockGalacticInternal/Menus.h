@@ -5,7 +5,8 @@
 
 void MyMenu();
 static void LogMenu();
-void ResourceMenu(bool *bShowMenu);
+void ResourceMenu();
+void MissionResourceMenu();
 void PlayerMenu();
 void WeaponMenu(char* MenuName, Weapon **pWeapon);
 void TraversalMenu(char* MenuName, TraversalTool **pWeapon);

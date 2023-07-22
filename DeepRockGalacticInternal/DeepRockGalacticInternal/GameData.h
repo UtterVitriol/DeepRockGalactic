@@ -23,7 +23,7 @@ enum WeaponType
 	//shield_generator =	0x48461C,
 };
 
-// Created with ReClass.NET 1.2 by KN4CK3R
+/// Created with ReClass.NET 1.2 by KN4CK3R
 
 class Character
 {
@@ -115,35 +115,35 @@ public:
 	char pad_0000[16]; //0x0000
 	class HasWeaponType* pWeaponType; //0x0010
 	uint32_t FNameIndex; //0x0018
-	char pad_001C[1548]; //0x001C
-	int32_t maxAmmo; //0x0628
-	int32_t clipSize; //0x062C
-	int32_t shotCost; //0x0630
-	float fireRate; //0x0634
-	float burstCount; //0x0638
-	float burstCycleTime; //0x063C
-	float reloadDuration; //0x0640
-	int32_t reserveAmmo; //0x0644
-	int32_t ammo; //0x0648
-	char pad_064C[36]; //0x064C
-	float shootCooldown; //0x0670
-	char pad_0674[12]; //0x0674
-	float recoilRollMin; //0x0680
-	float recoilRollMax; //0x0684
-	float recoilPitchMin; //0x0688
-	float recoilPitchMax; //0x068C
-	float recoilYawMin; //0x0690
-	float recoilYawMax; //0x0694
-	char pad_0698[16]; //0x0698
-	int8_t hasAutomaticFire; //0x06A8
-	char pad_06A9[39]; //0x06A9
-	float zipLineMaxDistance; //0x06D0
-	float zipLineMinDistance; //0x06D4
-	float zipLineBaseAngle; //0x06D8
-	float zipLineMaxAngle; //0x06DC
-	char pad_06E0[280]; //0x06E0
-}; //Size: 0x07F8
-static_assert(sizeof(TraversalTool) == 0x7F8);
+	char pad_001C[1612]; //0x001C
+	int32_t maxAmmo; //0x0668
+	int32_t clipSize; //0x066C
+	int32_t shotCost; //0x0670
+	float fireRate; //0x0674
+	float burstCount; //0x0678
+	float burstCycleTime; //0x067C
+	float reloadDuration; //0x0680
+	int32_t reserveAmmo; //0x0684
+	int32_t ammo; //0x0688
+	char pad_068C[44]; //0x068C
+	float shootCooldown; //0x06B8
+	char pad_06BC[32]; //0x06BC
+	float recoilRollMin; //0x06DC
+	float recoilRollMax; //0x06E0
+	float recoilPitchMin; //0x06E4
+	float recoilPitchMax; //0x06E8
+	float recoilYawMin; //0x06EC
+	float recoilYawMax; //0x06F0
+	char pad_06F4[24]; //0x06F4
+	int8_t hasAutomaticFire; //0x070C
+	char pad_070D[35]; //0x070D
+	float zipLineMaxDistance; //0x0730
+	float zipLineMinDistance; //0x0734
+	float zipLineBaseAngle; //0x0738
+	float zipLineMaxAngle; //0x073C
+	char pad_0740[280]; //0x0740
+}; //Size: 0x0858
+static_assert(sizeof(TraversalTool) == 0x858);
 
 class HasWeaponType
 {
@@ -393,12 +393,28 @@ static_assert(sizeof(MapResources) == 0x8);
 class Resource
 {
 public:
-	char pad_0000[96]; //0x0000
+	char pad_0000[24]; //0x0000
+	int32_t fNameIdx; //0x0018
+	char pad_001C[60]; //0x001C
+	class Data* pData; //0x0058
 	float currentAmount; //0x0060
 	float maxAmount; //0x0064
 	char pad_0068[24]; //0x0068
 }; //Size: 0x0080
 static_assert(sizeof(Resource) == 0x80);
+
+class Data
+{
+public:
+	char pad_0000[24]; //0x0000
+	int32_t fNameIdx; //0x0018
+	char pad_001C[184]; //0x001C
+	int32_t creditValue; //0x00D4
+	int32_t xpValue; //0x00D8
+	float seasonXPMultiplier; //0x00DC
+	char pad_00E0[40]; //0x00E0
+}; //Size: 0x0108
+static_assert(sizeof(Data) == 0x108);
 ///////////////////////////////////////////////////////////
 
 // Created with ReClass.NET 1.2 by KN4CK3R

@@ -2,6 +2,8 @@
 #include "Game.h"
 #include "imgui.h"
 
+#include <string>
+
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 #define DERR(s) g_player.log.AddLog("[-]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
 #define DMSG(s) g_player.log.AddLog("[+]: %s:%d:%s(): %s\n", __FILENAME__, __LINE__, __func__, s)
@@ -20,6 +22,7 @@ void MyMenu()
 
 	static bool bShowAppLog = false;
 	static bool bShowResources = false;
+	static bool bShowMissionResources = false;
 	static bool bShowPlayer = false;
 	static bool bShowPrimaryWeapon = false;
 	static bool bShowSecondaryWeapon = false;
@@ -58,12 +61,12 @@ void MyMenu()
 		{
 			if (ImGui::BeginTable("split", 3))
 			{
-				ImGui::TableNextColumn();
+				/*ImGui::TableNextColumn();
 				if (ImGui::Checkbox("Infinite Health", &g_Game.bHookHealth))
 				{
 					g_Game.HookHealth();
 				}
-				
+
 				ImGui::TableNextColumn();
 				if (ImGui::Checkbox("Infinite Armor", &g_Game.bHookArmor))
 				{
@@ -74,7 +77,7 @@ void MyMenu()
 				if (ImGui::Checkbox("No Recoil", &g_Game.bNoRecoil))
 				{
 					g_Game.NoRecoil();
-				}
+				}*/
 
 				ImGui::TableNextColumn();
 				if (ImGui::Checkbox("No Bullet Spread", &g_Game.bNoBulletSpread))
@@ -82,17 +85,17 @@ void MyMenu()
 					g_Game.NoBulletSpread();
 				}
 
-				ImGui::TableNextColumn(); 
+				/*ImGui::TableNextColumn();
 				if (ImGui::Checkbox("Hook Minerals", &g_Game.bHookMinerals))
 				{
 					g_Game.HookMinerals();
 				}
 
-				ImGui::TableNextColumn(); 
+				ImGui::TableNextColumn();
 				if (ImGui::Checkbox("Hook Mineral Objective", &g_Game.bHookObjective))
 				{
 					g_Game.HookObjective();
-				}
+				}*/
 				ImGui::EndTable();
 			}
 		}
@@ -103,10 +106,12 @@ void MyMenu()
 		if (ImGui::BeginTable("split", 4))
 		{
 			ImGui::TableNextColumn();  ImGui::Checkbox("Resources", &bShowResources);
-			ImGui::TableNextColumn();  ImGui::Checkbox("Player", &bShowPlayer);
 
 			if (g_Game.bIsOnMission)
 			{
+				ImGui::TableNextColumn();  ImGui::Checkbox("Mission Resources", &bShowMissionResources);
+				ImGui::TableNextColumn();  ImGui::Checkbox("Player", &bShowPlayer);
+
 				ImGui::TableNextColumn();  ImGui::Checkbox("Primary Weapon", &bShowPrimaryWeapon);
 				ImGui::TableNextColumn();  ImGui::Checkbox("Secondary Weapon", &bShowSecondaryWeapon);
 				ImGui::TableNextColumn();  ImGui::Checkbox("Traversal Tool", &bShowTraversalTool);
@@ -117,7 +122,7 @@ void MyMenu()
 		}
 
 	}
-	
+
 	if (ImGui::CollapsingHeader("Settings")) {
 		ImGui::DragFloat("global scale", &io.FontGlobalScale, 0.005f, MIN_SCALE, MAX_SCALE, "%.2f", ImGuiSliderFlags_AlwaysClamp); // Scale everything
 	}
@@ -132,11 +137,17 @@ void MyMenu()
 	}
 	if (bShowResources)
 	{
-		ResourceMenu(&bShowResources);
+		ResourceMenu();
+	}
+
+	if (bShowMissionResources && g_Game.bIsOnMission)
+	{
+		MissionResourceMenu();
 	}
 
 	if (bShowPlayer)
 	{
+
 		PlayerMenu();
 	}
 
@@ -147,7 +158,7 @@ void MyMenu()
 
 	if (bShowSecondaryWeapon && g_Game.bIsOnMission)
 	{
-		WeaponMenu(g_Game.m_SecondaryName, & g_Game.pCharacter->pEquipables->pSecondaryGun);
+		WeaponMenu(g_Game.m_SecondaryName, &g_Game.pCharacter->pEquipables->pSecondaryGun);
 	}
 
 	if (bShowTraversalTool && g_Game.bIsOnMission)
@@ -168,15 +179,9 @@ static void LogMenu()
 /// <summary>
 /// Shows Player Resources
 /// </summary>
-/// <param name="bShowMenu"></param>
-void ResourceMenu(bool* bShowMenu)
+void ResourceMenu()
 {
-	if (!*bShowMenu)
-	{
-		return;
-	}
-
-	ImGui::Begin("Player Resources", bShowMenu);
+	ImGui::Begin("Player Resources");
 
 	ImGui::SeparatorText("Misc");
 
@@ -205,6 +210,33 @@ void ResourceMenu(bool* bShowMenu)
 	ImGui::End();
 }
 
+void MissionResourceMenu()
+{
+	char names[10][1024] = {0};
+	Resource* pResource = NULL;
+	int numResources = (int)g_Game.pLocalPlayer->pPlayerController->pPlayerState->pPlayerResources->resourcesCount;
+
+	ImGui::Begin("Mission Resources");
+
+	ImGui::InputInt("Resources", &numResources, 0, 0, ImGuiInputTextFlags_ReadOnly);
+
+	for (int i = 0; i < (int)g_Game.pLocalPlayer->pPlayerController->pPlayerState->pPlayerResources->resourcesCount; i++)
+	{
+		pResource = ((Resource**)g_Game.pLocalPlayer->pPlayerController->pPlayerState->pPlayerResources->pMapResources)[i];
+		g_Game.GetFName(pResource->pData->fNameIdx, names[i]);
+		ImGui::SeparatorText(names[i]);
+		ImGui::InputFloat(std::string("Ammount " + std::to_string(i + 1)).c_str(), &pResource->currentAmount, 1, 100, "%.0f");
+		ImGui::InputFloat(std::string("Max " + std::to_string(i + 1)).c_str(), &pResource->maxAmount, 1, 100, "%.0f");
+		ImGui::InputInt(std::string("Credit Value " + std::to_string(i + 1)).c_str(), &pResource->pData->creditValue);
+		ImGui::InputInt(std::string("XP Value " + std::to_string(i + 1)).c_str(), &pResource->pData->xpValue);
+		ImGui::InputFloat(std::string("Season XP Multiplier " + std::to_string(i + 1)).c_str(), &pResource->pData->seasonXPMultiplier, 1, 100, "%.0f");
+
+	}
+	
+
+	ImGui::End();
+}
+
 /// <summary>
 /// Shows Player Stats
 /// </summary>
@@ -229,13 +261,15 @@ void PlayerMenu()
 	ImGui::InputFloat("Carrying Movement Penalty", &g_Game.pCharacter->carryingMovementSpeedPenalty, 1, 100, "%.0f");
 	ImGui::InputFloat("Carrying Throw Min Force", &g_Game.pCharacter->carryingThrowMinForce, 1, 100, "%.0f");
 	ImGui::InputFloat("Carrying Throw Max Force", &g_Game.pCharacter->carryingThrowMaxForce, 1, 100, "%.0f");
-	ImGui::InputFloat("Gravity Scale", &g_Game.pCharacter->pCharacterMovement->gravityScale, .01, .1, "%.3f");
+
+	// Not working
+	//ImGui::InputFloat("Gravity Scale", &g_Game.pCharacter->pCharacterMovement->gravityScale, .01, .1, "%.3f");
 
 	ImGui::SeparatorText("Flairs");
 	ImGui::InputInt("Flares", &g_Game.pFlairs->flares);
 	ImGui::InputFloat("Flare Production Time", &g_Game.pFlairs->flareProductionTime, 1, 100, "%.3f");
 	ImGui::InputFloat("Flare Cooldown", &g_Game.pFlairs->flareCooldown, 1, 100, "%.3f");
-	
+
 	ImGui::SeparatorText("Dancing");
 
 	ImGui::Checkbox("Dance", (bool*)&g_Game.pCharacter->isDanceRange);
@@ -252,7 +286,7 @@ void PlayerMenu()
 	}
 
 	ImGui::Separator();
-	
+
 	if (ImGui::Button("Save"))
 	{
 		g_Game.SaveLocation();
